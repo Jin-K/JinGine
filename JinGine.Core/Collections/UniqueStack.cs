@@ -16,13 +16,9 @@ namespace JinGine.Core.Collections
 
         public new bool Push(T item)
         {
-            if (_set.Add(item))
-            {
-                base.Push(item);
-                return true;
-            }
-
-            return false;
+            if (!_set.Add(item)) return false;
+            base.Push(item);
+            return true;    
         }
     }
 }

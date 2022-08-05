@@ -1,10 +1,10 @@
 ﻿namespace JinGine.WinForms
 {
-    public partial class HelpTextControl : UserControl
+    public partial class StatusBar : UserControl
     {
         internal TextBox TextBox => textBox;
 
-        public HelpTextControl()
+        public StatusBar()
         {
             InitializeComponent();
         }

@@ -2,7 +2,7 @@
 {
     internal static class MenuItems
     {
-        [MenuItem("0_FILE", "File", "File operations")]
+        [MenuItem("0_FILE", "File")]
         internal static void File()
         {
         }

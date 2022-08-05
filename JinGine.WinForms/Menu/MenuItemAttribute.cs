@@ -3,7 +3,7 @@
     [AttributeUsage(AttributeTargets.Method)]
     internal class MenuItemAttribute : Attribute
     {
-        internal string TagId { get; }
+        internal string Level { get; }
 
         internal string Title { get; }
 
@@ -11,9 +11,9 @@
 
         internal string? HotKey { get; }
 
-        internal MenuItemAttribute(string tagId, string title, string? description = null, string? hotKey = null)
+        internal MenuItemAttribute(string level, string title, string? description = null, string? hotKey = null)
         {
-            TagId = tagId;
+            Level = level;
             Title = title;
             Description = description;
             HotKey = hotKey;

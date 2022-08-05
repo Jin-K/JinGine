@@ -1,6 +1,6 @@
 ﻿namespace JinGine.WinForms
 {
-    partial class HelpTextControl
+    partial class StatusBar
     {
         /// <summary> 
         /// Required designer variable.
@@ -43,12 +43,12 @@
             this.textBox.TabIndex = 0;
             this.textBox.TabStop = false;
             // 
-            // HelpTextControl
+            // StatusBar
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.textBox);
-            this.Name = "HelpTextControl";
+            this.Name = "StatusBar";
             this.Padding = new System.Windows.Forms.Padding(35, 3, 3, 3);
             this.Size = new System.Drawing.Size(800, 29);
             this.ResumeLayout(false);

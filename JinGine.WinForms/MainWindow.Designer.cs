@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.statusBar = new JinGine.WinForms.HelpTextControl();
+            this.statusBar = new JinGine.WinForms.StatusBar();
             this.tabsControl = new System.Windows.Forms.TabControl();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.SuspendLayout();
@@ -39,6 +39,7 @@
             this.statusBar.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.statusBar.Location = new System.Drawing.Point(0, 421);
             this.statusBar.Name = "statusBar";
+            this.statusBar.Padding = new System.Windows.Forms.Padding(35, 3, 3, 3);
             this.statusBar.Size = new System.Drawing.Size(800, 29);
             this.statusBar.TabIndex = 0;
             // 
@@ -76,7 +77,7 @@
         }
 
         #endregion
-        private HelpTextControl statusBar;
+        private StatusBar statusBar;
         private TabControl tabsControl;
         private MenuStrip menuStrip;
     }
