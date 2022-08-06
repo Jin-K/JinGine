@@ -1,25 +1,28 @@
-﻿namespace JinGine.WinForms.Menu
+﻿namespace JinGine.WinForms.Menu;
+
+internal static class MenuItems
 {
-    internal static class MenuItems
+    internal static readonly MenuItem[] Registrations =
     {
-        [MenuItem("0_FILE", "File")]
-        internal static void File()
-        {
-        }
+        (File, "File", "0_FILE"),
+        (OpenFile1, "Open file 1", "0_FILE_1", "Open file 1 operations"),
+        (OpenFile1A, "Open file 1 A", "0_FILE_1_A", "Open file 1 A"),
+        (OpenFile2, "Open file 2", "0_FILE_2", "Open file 2"),
+    };
+    
+    private static void File()
+    {
+    }
 
-        [MenuItem("0_FILE_1", "Open file 1", "Open file 1 operations")]
-        internal static void OpenFile1()
-        {
-        }
+    private static void OpenFile1()
+    {
+    }
 
-        [MenuItem("0_FILE_1_A", "Open file 1 A", "Open file 1 A")]
-        internal static void OpenFile1A()
-        {
-        }
+    private static void OpenFile1A()
+    {
+    }
 
-        [MenuItem("0_FILE_2", "Open file 2", "Open file 2")]
-        internal static void OpenFile2()
-        {
-        }
+    private static void OpenFile2()
+    {
     }
 }

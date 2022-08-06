@@ -1,24 +1,23 @@
 ﻿using System.Collections.Generic;
 
-namespace JinGine.Core.Collections
+namespace JinGine.Core.Collections;
+
+// TODO really implement the interfaces ourselves ? because this inner hashset can be out of sync right now
+public sealed class UniqueStack<T> : Stack<T>
 {
-    // TODO really implement the interfaces ourselves ? because this inner hashset can be out of sync right now
-    public sealed class UniqueStack<T> : Stack<T>
+    private readonly HashSet<T> _set = new();
+
+    public new T Pop()
     {
-        private readonly HashSet<T> _set = new();
+        var result = base.Pop();
+        _set.Remove(result);
+        return result;
+    }
 
-        public new T Pop()
-        {
-            var result = base.Pop();
-            _set.Remove(result);
-            return result;
-        }
-
-        public new bool Push(T item)
-        {
-            if (!_set.Add(item)) return false;
-            base.Push(item);
-            return true;    
-        }
+    public new bool Push(T item)
+    {
+        if (!_set.Add(item)) return false;
+        base.Push(item);
+        return true;    
     }
 }
