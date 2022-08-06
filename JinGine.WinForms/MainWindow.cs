@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using JinGine.WinForms.Menu;
 
 namespace JinGine.WinForms
@@ -12,14 +13,16 @@ namespace JinGine.WinForms
 
         private void InitializeMenu()
         {
-            MainMenuStrip.Items.AddRange(CreateMenuItemsRange(MenuItems.MenuItemsRegister));
+            SuspendLayout();
+            MainMenuStrip.Items.AddRange(CreateMenuItemsRange(MenuItems.RegisteredMenuItems));
+            ResumeLayout();
         }
 
-        private ToolStripItem[] CreateMenuItemsRange(MenuItemDictionary menuItemDictionary)
+        private ToolStripItem[] CreateMenuItemsRange(MenuItemsTree menuItemsTree)
         {
-            var result = new List<MenuItem>(menuItemDictionary.Count);
+            var result = new Collection<MenuItem>();
 
-            foreach (var (menuItem, children) in menuItemDictionary)
+            foreach (var (menuItem, children) in menuItemsTree)
             {
                 menuItem.MouseHover += description => statusBar.TextBox.Text = description;
 

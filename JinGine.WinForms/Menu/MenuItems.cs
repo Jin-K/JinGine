@@ -1,44 +1,38 @@
-﻿namespace JinGine.WinForms.Menu;
+﻿using System.Data;
+using JinGine.Core.Serialization;
+
+namespace JinGine.WinForms.Menu;
 
 internal static class MenuItems
 {
-    internal static readonly MenuItemDictionary MenuItemsRegister = new()
+    internal static readonly MenuItemsTree RegisteredMenuItems = new()
     {
         // File
         {
-            new MenuItem(File, "File"), new MenuItemDictionary
+            new MenuItem("File"), new MenuItemsTree
             {
                 // File -> Open file 1
                 {
-                    new MenuItem(OpenFile1, "Open file 1", "Open file 1 operations"), new MenuItemDictionary
+                    new MenuItem("Open file 1", "Open file 1 operations"), new MenuItemsTree
                     {
                         // File -> Open file 1 -> Open file 1 A
                         {
-                            new MenuItem(OpenFile1A, "Open file 1 A", "Open file 1 A"), null
+                            new MenuItem("Open file 1 A", "Open file 1 A", OpenFile1A), null
                         }
                     }
                 },
                 // File -> Open file 2
                 {
-                    new MenuItem(OpenFile2, "Open file 2", "Open file 2"), null
+                    new MenuItem("Open file 2", "Open file 2"), null
                 }
             }
         },
     };
 
-    private static void File()
-    {
-    }
-
-    private static void OpenFile1()
-    {
-    }
-
+    // TODO move this shit to a service or whatever else
     private static void OpenFile1A()
     {
-    }
-
-    private static void OpenFile2()
-    {
+        using var serializer = new FileSerializer("File1A.sez");
+        var fileContent = serializer.Deserialize<DataTable>();
     }
 }
