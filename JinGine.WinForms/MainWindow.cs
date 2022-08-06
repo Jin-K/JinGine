@@ -13,17 +13,16 @@ namespace JinGine.WinForms
         
         private void InitializeMenu()
         {
-            var lastMenuLevelPrefix = string.Empty;
-            var menuLevelPrefixes = new UniqueStack<string>();
+            var lastLevel = string.Empty;
+            var levelsStack = new UniqueStack<string>();
             var rootMenuItem = null as ToolStripMenuItem;
-            var orderedMenuItems = MenuItems.Registrations.OrderBy(t => t.Level).ToArray();
-            foreach (var menuItem in orderedMenuItems)
+            foreach (var menuItem in MenuItems.Registrations)
             {
-                menuItem.DescriptionAvailable += description => statusBar.TextBox.Text = description;
+                menuItem.MouseHover += description => statusBar.TextBox.Text = description;
 
-                while (!menuItem.Level.StartsWith(lastMenuLevelPrefix))
+                while (!menuItem.Level.StartsWith(lastLevel))
                 {
-                    lastMenuLevelPrefix = menuLevelPrefixes.Pop();
+                    lastLevel = levelsStack.Pop();
                     rootMenuItem = rootMenuItem?.OwnerItem as ToolStripMenuItem;
                 }
 
@@ -36,11 +35,9 @@ namespace JinGine.WinForms
                     MainMenuStrip.Items.Add(menuItem);
                 }
 
-                var levelPrefix = menuItem.Level[..menuItem.Level.LastIndexOf('_')];
+                if (!levelsStack.Push(menuItem.Level)) continue;
 
-                if (!menuLevelPrefixes.Push(levelPrefix)) continue;
-
-                lastMenuLevelPrefix = levelPrefix;
+                lastLevel = menuItem.Level;
                 rootMenuItem = menuItem;
             }
         }
