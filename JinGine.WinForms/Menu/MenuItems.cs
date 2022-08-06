@@ -2,14 +2,30 @@
 
 internal static class MenuItems
 {
-    internal static readonly MenuItem[] Registrations =
+    internal static readonly MenuItemDictionary MenuItemsRegister = new()
     {
-        new("0", File, "File"),
-        new("0_FILE", OpenFile1, "Open file 1", "Open file 1 operations"),
-        new("0_FILE_1", OpenFile1A, "Open file 1 A", "Open file 1 A"),
-        new("0_FILE", OpenFile2, "Open file 2", "Open file 2"),
+        // File
+        {
+            new MenuItem(File, "File"), new MenuItemDictionary
+            {
+                // File -> Open file 1
+                {
+                    new MenuItem(OpenFile1, "Open file 1", "Open file 1 operations"), new MenuItemDictionary
+                    {
+                        // File -> Open file 1 -> Open file 1 A
+                        {
+                            new MenuItem(OpenFile1A, "Open file 1 A", "Open file 1 A"), null
+                        }
+                    }
+                },
+                // File -> Open file 2
+                {
+                    new MenuItem(OpenFile2, "Open file 2", "Open file 2"), null
+                }
+            }
+        },
     };
-    
+
     private static void File()
     {
     }

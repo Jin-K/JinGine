@@ -1,4 +1,3 @@
-using JinGine.Core.Collections;
 using JinGine.WinForms.Menu;
 
 namespace JinGine.WinForms
@@ -10,36 +9,29 @@ namespace JinGine.WinForms
             InitializeComponent();
             InitializeMenu();
         }
-        
+
         private void InitializeMenu()
         {
-            var lastLevel = string.Empty;
-            var levelsStack = new UniqueStack<string>();
-            var rootMenuItem = null as ToolStripMenuItem;
-            foreach (var menuItem in MenuItems.Registrations)
+            MainMenuStrip.Items.AddRange(CreateMenuItemsRange(MenuItems.MenuItemsRegister));
+        }
+
+        private ToolStripItem[] CreateMenuItemsRange(MenuItemDictionary menuItemDictionary)
+        {
+            var result = new List<MenuItem>(menuItemDictionary.Count);
+
+            foreach (var (menuItem, children) in menuItemDictionary)
             {
                 menuItem.MouseHover += description => statusBar.TextBox.Text = description;
 
-                while (!menuItem.Level.StartsWith(lastLevel))
+                if (children?.Any() ?? false)
                 {
-                    lastLevel = levelsStack.Pop();
-                    rootMenuItem = rootMenuItem?.OwnerItem as ToolStripMenuItem;
+                    menuItem.DropDownItems.AddRange(CreateMenuItemsRange(children));
                 }
 
-                if (rootMenuItem is not null)
-                {
-                    rootMenuItem.DropDownItems.Add(menuItem);
-                }
-                else
-                {
-                    MainMenuStrip.Items.Add(menuItem);
-                }
-
-                if (!levelsStack.Push(menuItem.Level)) continue;
-
-                lastLevel = menuItem.Level;
-                rootMenuItem = menuItem;
+                result.Add(menuItem);
             }
+
+            return result.Cast<ToolStripItem>().ToArray();
         }
     }
 }

@@ -4,14 +4,13 @@ internal class MenuItem : ToolStripMenuItem
 {
     private readonly Action _handler;
 
-    internal string Level { get; }
     internal string? Description { get; }
     internal string? HotKey { get; } // TODO use ToolStripMenuItem.ShortcutKeys
 
     internal delegate void DescriptionAvailableHandler(string? description);
     internal new event DescriptionAvailableHandler? MouseHover;
 
-    internal MenuItem(string level,
+    internal MenuItem(
         Action handler,
         string text,
         string? description = null,
@@ -19,7 +18,6 @@ internal class MenuItem : ToolStripMenuItem
     {
         _handler = handler;
 
-        Level = level;
         Description = description;
         HotKey = hotKey;
 
