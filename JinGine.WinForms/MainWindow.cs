@@ -13,7 +13,9 @@ namespace JinGine.WinForms
         private void InitializeMenu()
         {
             SuspendLayout();
-            this.MainMenuStrip.Items.AddRange(MenuAssembler.CreateMenuItems(MainWindowMediator.Instance));
+            var menuAssembler = new MenuAssembler(statusBar);
+            var menuItems = menuAssembler.CreateItems();
+            this.MainMenuStrip.Items.AddRange(menuItems.Cast<ToolStripItem>().ToArray());
             ResumeLayout();
         }
     }
