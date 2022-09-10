@@ -1,46 +1,34 @@
-﻿using JinGine.Core;
-
-namespace JinGine.WinForms.Menu;
+﻿namespace JinGine.WinForms.Menu;
 
 /// <summary>
 /// A <see cref="ToolStripMenuItem"/> builder
 /// </summary>
 internal class ToolStripMenuItemBuilder
 {
-    private readonly string _text;
-    private EventHandler? _clickHandler;
-    private EventHandler? _mouseHoverHandler;
-    private ToolStripItem[]? _children;
+    private readonly ToolStripMenuItem _menuItem;
 
     internal ToolStripMenuItemBuilder(string text)
     {
-        _text = text;
+        _menuItem = new ToolStripMenuItem(text);
     }
 
-    internal ToolStripMenuItemBuilder WithCommand(ICommand command)
+    internal ToolStripMenuItemBuilder AddChildren(params ToolStripItem[] children)
     {
-        _clickHandler = (_, _) => command.Execute();
+        _menuItem.DropDownItems.AddRange(children);
         return this;
     }
 
-    internal ToolStripMenuItemBuilder OnMouseHover(Action mouseHoverHandler)
+    internal ToolStripMenuItemBuilder OnClick(Action<ToolStripMenuItem> clickHandler)
     {
-        _mouseHoverHandler = (_, _) => mouseHoverHandler();
+        _menuItem.Click += (_, _) => clickHandler(_menuItem);
         return this;
     }
 
-    internal ToolStripMenuItemBuilder WithChildren(params ToolStripItem[] children)
+    internal ToolStripMenuItemBuilder OnMouseHover(Action<ToolStripMenuItem> mouseHoverHandler)
     {
-        _children = children;
+        _menuItem.MouseHover += (_, _) => mouseHoverHandler(_menuItem);
         return this;
     }
 
-    internal ToolStripMenuItem Build()
-    {
-        var item = new ToolStripMenuItem(_text);
-        if (_clickHandler is not null) item.Click += _clickHandler;
-        if (_mouseHoverHandler is not null) item.MouseHover += _mouseHoverHandler;
-        if (_children is not null) item.DropDownItems.AddRange(_children);
-        return item;
-    }
+    internal ToolStripMenuItem BuildItem() => _menuItem;
 }

@@ -13,7 +13,7 @@ namespace JinGine.WinForms
         private void InitializeMenu()
         {
             SuspendLayout();
-            MenuManager.BindMenuItems(this, desc => statusBar.TextBox.Text = desc);
+            this.MainMenuStrip.Items.AddRange(MenuAssembler.CreateMenuItems(MainWindowMediator.Instance));
             ResumeLayout();
         }
     }

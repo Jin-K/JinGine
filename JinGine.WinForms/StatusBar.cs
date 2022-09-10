@@ -2,11 +2,10 @@
 {
     public partial class StatusBar : UserControl
     {
-        internal TextBox TextBox => textBox;
-
         public StatusBar()
         {
             InitializeComponent();
+            MainWindowMediator.Instance.RegisterInfoTextBox(textBox);
         }
     }
 }
