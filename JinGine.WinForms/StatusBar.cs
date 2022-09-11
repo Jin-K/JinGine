@@ -1,4 +1,6 @@
-﻿namespace JinGine.WinForms
+﻿using JinGine.Core;
+
+namespace JinGine.WinForms
 {
     public partial class StatusBar : UserControl, IInformable
     {

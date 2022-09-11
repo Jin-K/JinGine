@@ -13,8 +13,12 @@ namespace JinGine.WinForms
         private void InitializeMenu()
         {
             SuspendLayout();
-            var menuItems = MenuItemsFactory.CreateItems(MenuDefinitions.Items, statusBar);
-            this.MainMenuStrip.Items.AddRange(menuItems);
+
+            foreach (var item in MenuDefinitions.Items)
+            {
+                MainMenuStrip.Items.Add(new MenuItemDecorator(item, statusBar));
+            }
+
             ResumeLayout();
         }
     }
