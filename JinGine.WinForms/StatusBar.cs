@@ -1,8 +1,8 @@
 ﻿namespace JinGine.WinForms
 {
-    public partial class StatusBar : UserControl, IDescriber
+    public partial class StatusBar : UserControl, IInformable
     {
-        public string Description { set => textBox.Text = value; }
+        public string Info { set => textBox.Text = value; }
 
         public StatusBar()
         {
