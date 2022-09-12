@@ -6,8 +6,4 @@
 	<LangVersion>10</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Serialization\" />
-  </ItemGroup>
-
 </Project>

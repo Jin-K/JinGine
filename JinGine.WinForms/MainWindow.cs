@@ -14,10 +14,8 @@ namespace JinGine.WinForms
         {
             SuspendLayout();
 
-            foreach (var item in MenuDefinitions.Items)
-            {
-                MainMenuStrip.Items.Add(item.ToToolStripItem(statusBar));
-            }
+            var items = MenuAssembler.CreateToolStripItems(MenuDefinitions.Items, statusBar);
+            MainMenuStrip.Items.AddRange(items);
 
             ResumeLayout();
         }

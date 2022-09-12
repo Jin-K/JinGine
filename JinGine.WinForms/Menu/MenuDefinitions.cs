@@ -7,7 +7,7 @@ internal static class MenuDefinitions
         {
             new("Open file 1", "Open file 1 operations", null, new MenuItem[]
             {
-                new("Open file 1 A", "Open file 1 A for real", new Commands.OpenFile1ACommand())
+                new("Open file 1 A", "Open file 1 A for real", new Commands.OpenFile1A())
             }),
             new("Open file 2", "Open file 2 operations"),
         })
