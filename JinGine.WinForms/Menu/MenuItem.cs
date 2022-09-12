@@ -20,4 +20,19 @@ internal class MenuItem
         Command = command;
         Children = children;
     }
+
+    internal ToolStripItem ToToolStripItem(IInformable informable)
+    {
+        var menuItem = new ToolStripMenuItem(Text);
+
+        if (Description is not null) menuItem.MouseHover += (_, _) => informable.Info = Description;
+        if (Command is not null) menuItem.Click += (_, _) => Command.Execute();
+        if (Children is not null)
+        {
+            foreach (var child in Children)
+                menuItem.DropDownItems.Add(child.ToToolStripItem(informable));
+        }
+
+        return menuItem;
+    }
 }

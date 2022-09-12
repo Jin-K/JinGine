@@ -16,7 +16,7 @@ namespace JinGine.WinForms
 
             foreach (var item in MenuDefinitions.Items)
             {
-                MainMenuStrip.Items.Add(new MenuItemDecorator(item, statusBar));
+                MainMenuStrip.Items.Add(item.ToToolStripItem(statusBar));
             }
 
             ResumeLayout();
