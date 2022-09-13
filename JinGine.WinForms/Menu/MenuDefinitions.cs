@@ -2,10 +2,10 @@
 
 internal static class MenuDefinitions
 {
-    internal static MenuItem[] Items = {
-        new("File", null, null, new MenuItem[]
+    internal static MenuDefinition[] Items = {
+        new("File", null, null, new MenuDefinition[]
         {
-            new("Open file 1", "Open file 1 operations", null, new MenuItem[]
+            new("Open file 1", "Open file 1 operations", null, new MenuDefinition[]
             {
                 new("Open file 1 A", "Open file 1 A for real", new Commands.OpenFile1A())
             }),

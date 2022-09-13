@@ -9,9 +9,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Files.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Update="StatusBar.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>

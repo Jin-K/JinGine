@@ -4,12 +4,12 @@ namespace JinGine.WinForms.Menu;
 
 internal static class MenuAssembler // static factory
 {
-    internal static ToolStripItem[] CreateToolStripItems(MenuItem[] definitions, IInformable informable)
+    internal static ToolStripItem[] CreateToolStripItems(IEnumerable<MenuDefinition> definitions, IInformable informable)
     {
         return definitions.Select(def => def.ToToolStripItem(informable)).ToArray();
     }
 
-    private static ToolStripItem ToToolStripItem(this MenuItem source, IInformable informable)
+    private static ToolStripItem ToToolStripItem(this MenuDefinition source, IInformable informable)
     {
         var result = new ToolStripMenuItem(source.Text);
 
