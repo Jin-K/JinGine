@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace JinGine.Core.Serialization.Strategies;
 
-public sealed class BinaryStreamStrategy : ISerializationStrategy, IDisposable
+public sealed class BinaryStreamStrategy : IStrategy, IDisposable
 {
     private readonly BinaryFormatter _formatter;
     private readonly Stream _stream;
@@ -15,15 +15,16 @@ public sealed class BinaryStreamStrategy : ISerializationStrategy, IDisposable
         _stream = stream;
     }
 
-    public T Deserialize<T>() where T : notnull
+    public T Deserialize<T>()
     {
-        // TODO what happens if _stream has an incorrect length ??
         _stream.Seek(0, SeekOrigin.Begin);
-        return (T)_formatter.Deserialize(_stream);
+        return (T)_formatter.Deserialize(_stream); // TODO what happens if _stream has an incorrect length ??
     }
 
-    public void Serialize<T>(T data) where T : notnull
+    public void Serialize<T>(T data)
     {
+        if (data is null) throw new ArgumentNullException(nameof(data));
+
         _stream.Seek(0, SeekOrigin.Begin);
         _formatter.Serialize(_stream, data);
         _stream.SetLength(_stream.Position);

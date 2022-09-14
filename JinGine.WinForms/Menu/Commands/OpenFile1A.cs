@@ -11,27 +11,17 @@ internal class OpenFile1A : ICommand
     public void Execute()
     {
         var filePath = Path.Combine(Settings.Default.FilesPath, "File1A.bin");
-        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite);
+        var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite);
+        using var strategy = new BinaryStreamStrategy(fileStream);
 
-        Serialize(fileStream);
-        Deserialize(fileStream);
+        Serialize(strategy, new DataTable("New Table"));
+        var dataTable = Deserialize(strategy);
+
+        // TODO Houston, we have a problem
+        //(Form.ActiveForm as MainWindow).ShowDaTable(dataTable);
     }
 
-    private static void Serialize(Stream stream)
-    {
-        var dataTable = new DataTable("New Table");
-        
-        var strategy = new BinaryStreamStrategy(stream);
-        var serializer = new Serializer(strategy);
+    private static void Serialize(IStrategy strategy, DataTable data) => new Serializer<DataTable>(strategy).Serialize(data);
 
-        serializer.Serialize(dataTable);
-    }
-
-    private static DataTable Deserialize(Stream stream)
-    {
-        var strategy = new BinaryStreamStrategy(stream);
-        var serializer = new Serializer(strategy);
-
-        return serializer.Deserialize<DataTable>();
-    }
+    private static DataTable Deserialize(IStrategy strategy) => new Serializer<DataTable>(strategy).Deserialize();
 }

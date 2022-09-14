@@ -1,17 +1,15 @@
 ﻿namespace JinGine.Core.Serialization;
 
-public class Serializer : ISerializer
+public class Serializer<T> : ISerializer<T>
 {
-    private readonly ISerializationStrategy _strategy;
+    private readonly IStrategy _strategy;
 
-    public Serializer(ISerializationStrategy strategy)
+    public Serializer(IStrategy strategy)
     {
         _strategy = strategy;
     }
 
-    public T Deserialize<T>() where T : notnull => _strategy.Deserialize<T>();
+    public T Deserialize() => _strategy.Deserialize<T>();
 
-    public object Deserialize() => Deserialize<object>();
-
-    public void Serialize<T>(T data) where T : notnull => _strategy.Serialize(data);
+    public void Serialize(T data) => _strategy.Serialize(data);
 }
