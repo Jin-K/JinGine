@@ -15,19 +15,17 @@ public sealed class BinaryStreamStrategy : IStrategy, IDisposable
         _stream = stream;
     }
 
-    public T Deserialize<T>()
+    public object Deserialize()
     {
         _stream.Seek(0, SeekOrigin.Begin);
-        return (T)_formatter.Deserialize(_stream); // TODO what happens if _stream has an incorrect length ??
+        return _formatter.Deserialize(_stream); // TODO what happens if _stream has an incorrect length ??
     }
 
-    public void Serialize<T>(T data)
+    public void Serialize(object data)
     {
-        if (data is null) throw new ArgumentNullException(nameof(data));
-
         _stream.Seek(0, SeekOrigin.Begin);
         _formatter.Serialize(_stream, data);
-        _stream.SetLength(_stream.Position);
+        _stream.Truncate();
     }
 
     public void Dispose() => _stream.Dispose();

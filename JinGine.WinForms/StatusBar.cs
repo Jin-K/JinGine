@@ -1,8 +1,8 @@
-﻿using JinGine.Core;
+﻿using JinGine.WinForms.Views;
 
 namespace JinGine.WinForms
 {
-    public partial class StatusBar : UserControl, IInformable
+    public partial class StatusBar : UserControl, IStatusBarView
     {
         public string Info { set => textBox.Text = value; }
 

@@ -2,7 +2,7 @@
 
 public interface IStrategy
 {
-    T Deserialize<T>();
+    object Deserialize();
 
-    void Serialize<T>(T data);
+    void Serialize(object data);
 }

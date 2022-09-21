@@ -1,8 +1,12 @@
 ﻿namespace JinGine.Core.Serialization;
 
-public interface ISerializer<T>
+public interface ISerializer
 {
-    T Deserialize();
+    object Deserialize();
 
-    void Serialize(T data);
+    T Deserialize<T>() where T : notnull;
+
+    void Serialize(object data);
+
+    void Serialize<T>(T data) where T : notnull;
 }

@@ -1,6 +1,6 @@
 ﻿namespace JinGine.WinForms
 {
-    partial class MainWindow
+    partial class MainForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -46,10 +46,12 @@
             // tabsControl
             // 
             this.tabsControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabsControl.Location = new System.Drawing.Point(0, 0);
+            this.tabsControl.Location = new System.Drawing.Point(0, 24);
+            this.tabsControl.Margin = new System.Windows.Forms.Padding(0);
             this.tabsControl.Name = "tabsControl";
+            this.tabsControl.Padding = new System.Drawing.Point(0, 0);
             this.tabsControl.SelectedIndex = 0;
-            this.tabsControl.Size = new System.Drawing.Size(800, 421);
+            this.tabsControl.Size = new System.Drawing.Size(800, 397);
             this.tabsControl.TabIndex = 0;
             // 
             // menuStrip
@@ -60,16 +62,16 @@
             this.menuStrip.TabIndex = 1;
             this.menuStrip.Text = "menuStrip1";
             // 
-            // MainWindow
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.menuStrip);
             this.Controls.Add(this.tabsControl);
+            this.Controls.Add(this.menuStrip);
             this.Controls.Add(this.statusBar);
             this.MainMenuStrip = this.menuStrip;
-            this.Name = "MainWindow";
+            this.Name = "MainForm";
             this.Text = "MainWindow";
             this.ResumeLayout(false);
             this.PerformLayout();
