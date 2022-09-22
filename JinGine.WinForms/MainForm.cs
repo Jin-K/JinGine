@@ -34,7 +34,7 @@ namespace JinGine.WinForms
             MainMenuStrip.Items.Add(fileItem);
         }
 
-        public void OpenInTab(string name, Control control)
+        public void ShowInNewTab(string name, Control control)
         {
             var newTab = new TabPage(name);
             tabsControl.TabPages.Add(newTab);

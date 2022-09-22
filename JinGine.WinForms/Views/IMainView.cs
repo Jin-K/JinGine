@@ -4,5 +4,5 @@ internal interface IMainView
 {
     event EventHandler<ClickOpenFileEventArgs> ClickedOpenFile;
 
-    void OpenInTab(string name, Control control);
+    void ShowInNewTab(string name, Control control);
 }

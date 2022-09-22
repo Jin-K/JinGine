@@ -22,16 +22,28 @@ internal class MainPresenter
         var serializer = new StrategySerializer(new BinaryStreamStrategy(fileStream));
         var data = serializer.Deserialize();
 
+        UserControl userControl;
         switch (data)
         {
             case System.Data.DataTable dt:
-                var gridView = new DataGrid();
-                var _ = new DataGridPresenter(gridView, dt);
-                _mainView.OpenInTab(args.FileName, gridView);
+            {
+                var view = new DataGrid();
+                var presenter = new DataGridPresenter(view, dt);
+                userControl = view;
                 break;
+            }
+            case string str:
+            {
+                var view = new Editor();
+                var presenter = new EditorPresenter(view, str);
+                userControl = view;
+                break;
+            }
             default:
                 var message = string.Format(ExceptionMessages.MainPresenter_Cannot_Handle_Type, data.GetType().FullName);
                 throw new NotSupportedException(message);
         }
+
+        _mainView.ShowInNewTab(args.FileName, userControl);
     }
 }
