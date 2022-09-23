@@ -1,4 +1,5 @@
-﻿using JinGine.Core.Serialization;
+﻿using JinGine.Core.Models;
+using JinGine.Core.Serialization;
 using JinGine.Core.Serialization.Strategies;
 using JinGine.WinForms.Properties;
 using JinGine.WinForms.Views;
@@ -17,9 +18,11 @@ internal class MainPresenter
 
     private void OnClickOpenFile(object? sender, ClickOpenFileEventArgs args)
     {
-        var filePath = Path.Combine(Settings.Default.FilesPath, args.FileName);
-        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        var serializer = new StrategySerializer(new BinaryStreamStrategy(fileStream));
+        using var fs = new FileStream(
+            Path.Combine(Settings.Default.FilesPath, args.FileName),
+            FileMode.Open,
+            FileAccess.Read);
+        var serializer = new StrategySerializer(new BinaryStreamStrategy(fs));
         var data = serializer.Deserialize();
 
         UserControl userControl;
@@ -28,14 +31,20 @@ internal class MainPresenter
             case System.Data.DataTable dt:
             {
                 var view = new DataGrid();
-                var presenter = new DataGridPresenter(view, dt);
+                var model = new DataGridModel(dt);
+                var _ = new DataGridPresenter(view, model);
                 userControl = view;
                 break;
             }
-            case string str:
+            case string content:
             {
                 var view = new Editor();
-                var presenter = new EditorPresenter(view, str);
+                var fileType = args.FileName.EndsWith(".cs")
+                    ? EditorModel.FileType.CSharp
+                    : EditorModel.FileType.Text;
+
+                var model = new EditorModel(fileType, content);
+                var _ = new EditorPresenter(view, model);
                 userControl = view;
                 break;
             }
