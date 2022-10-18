@@ -1,8 +1,10 @@
-﻿using JinGine.Core.Models;
+using System.Data;
+using JinGine.Core.Models;
 using JinGine.Core.Serialization;
 using JinGine.Core.Serialization.Strategies;
 using JinGine.WinForms.Properties;
 using JinGine.WinForms.Views;
+using LegacyFwk;
 
 namespace JinGine.WinForms.Presenters;
 
@@ -16,43 +18,46 @@ internal class MainPresenter
         _mainView.ClickedOpenFile += OnClickOpenFile;
     }
 
+    // ReSharper disable ObjectCreationAsStatement
+#pragma warning disable CA1806 // Do not ignore method results
     private void OnClickOpenFile(object? sender, ClickOpenFileEventArgs args)
     {
-        using var fs = new FileStream(
-            Path.Combine(Settings.Default.FilesPath, args.FileName),
-            FileMode.Open,
-            FileAccess.Read);
-        var serializer = new StrategySerializer(new BinaryStreamStrategy(fs));
-        var data = serializer.Deserialize();
+        var fileName = FileManager.ExpandPath(Path.Combine(Settings.Default.FilesPath, args.FileName));
 
-        UserControl userControl;
-        switch (data)
+        switch (args.FileType)
         {
-            case System.Data.DataTable dt:
+            case FileType.DataTable:
             {
-                var view = new DataGrid();
-                var model = new DataGridModel(dt);
-                var _ = new DataGridPresenter(view, model);
-                userControl = view;
-                break;
-            }
-            case string content:
-            {
-                var view = new Editor();
-                var fileType = args.FileName.EndsWith(".cs")
-                    ? EditorModel.FileType.CSharp
-                    : EditorModel.FileType.Text;
+                using var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                var serializer = new StrategySerializer(new BinaryStreamStrategy(fs));
+                var data = serializer.Deserialize<DataTable>();
+                var model = new DataGridModel(data);
 
-                var model = new EditorModel(fileType, content);
-                var _ = new EditorPresenter(view, model);
-                userControl = view;
-                break;
+                var view = new DataGrid();
+                new DataGridPresenter(view, model);
+
+                _mainView.ShowInNewTab(fileName, view);
+                return;
+            }
+            case FileType.CSharp:
+            {
+                if (FileManager.IsUrl(fileName) is not true)
+                    FileManager.AskCreateFileIfNotFound(fileName);
+                
+                var model = new EditorModel(
+                    new EditorText(FileManager.GetTextContent(fileName)),
+                    fileName);
+
+                var view = new Editor { Dock = DockStyle.Fill };
+                new EditorPresenter(view, model);
+
+                _mainView.ShowInNewTab(fileName, view);
+                return;
             }
             default:
-                var message = string.Format(ExceptionMessages.MainPresenter_Cannot_Handle_Type, data.GetType().FullName);
-                throw new NotSupportedException(message);
+                throw new ArgumentOutOfRangeException(nameof(args), $"{nameof(args.FileType)} is not supported.");
         }
-
-        _mainView.ShowInNewTab(args.FileName, userControl);
     }
+#pragma warning restore CA1806 // Do not ignore method results
+    // ReSharper restore ObjectCreationAsStatement
 }

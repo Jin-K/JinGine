@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\JinGine.Core\JinGine.Core.csproj" />
     <ProjectReference Include="..\JinGine.WinForms.Extensions\JinGine.WinForms.Extensions.csproj" />
+    <ProjectReference Include="..\LegacyFwk\LegacyFwk.csproj" />
   </ItemGroup>
 
   <ItemGroup>

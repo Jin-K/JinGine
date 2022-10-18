@@ -5,6 +5,7 @@ namespace JinGine.WinForms
     public partial class MainForm : Form, IMainView
     {
         public event EventHandler<ClickOpenFileEventArgs>? ClickedOpenFile;
+
         public MainForm()
         {
             InitializeComponent();
@@ -18,12 +19,17 @@ namespace JinGine.WinForms
                 .OnMouseHover((_, _) => statusBar.Info = "Open file 1 A for real")
                 .OnClick((_, _) => ClickedOpenFile?.Invoke(
                     this,
-                    new ClickOpenFileEventArgs("File1A.bin")));
+                    new ClickOpenFileEventArgs(FileType.DataTable, "File1A.bin")));
+            var openFile1BItem = new ToolStripMenuItem("Open file 1 B")
+                .OnMouseHover((_, _) => statusBar.Info = "Open file 1 B for real")
+                .OnClick((_, _) => ClickedOpenFile?.Invoke(
+                    this,
+                    new ClickOpenFileEventArgs(FileType.CSharp, "File1A.bin")));
 
             // level 2
             var openFile1Item = new ToolStripMenuItem("Open file 1")
                 .OnMouseHover((_, _) => statusBar.Info = "Open file 1 operations")
-                .WithChildren(openFile1AItem);
+                .WithChildren(openFile1AItem, openFile1BItem);
             var openFile2Item = new ToolStripMenuItem("Open file 2")
                 .OnMouseHover((_, _) => statusBar.Info = "Open file 2 operations");
 
@@ -39,6 +45,7 @@ namespace JinGine.WinForms
             var newTab = new TabPage(name);
             tabsControl.TabPages.Add(newTab);
             newTab.Controls.Add(control);
+            control.Focus();
         }
     }
 }
