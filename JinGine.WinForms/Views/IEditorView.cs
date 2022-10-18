@@ -1,10 +1,9 @@
-﻿using JinGine.Core.Models;
-
-namespace JinGine.WinForms.Views;
+﻿namespace JinGine.WinForms.Views;
 
 internal interface IEditorView
 {
     event EventHandler<char> PressedKey;
 
-    void Render(IDictionary<int, string> textLinesByNumber);
+    void Render(IReadOnlyDictionary<int, string> textLinesByNumber);
+    void ScrollTo(int line, int column);
 }

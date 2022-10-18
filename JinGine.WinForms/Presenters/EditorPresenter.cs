@@ -13,16 +13,20 @@ internal class EditorPresenter
         _view = view;
         _model = model;
         
-        var lineContentsByNumber = model.EditorText.Lines.ToDictionary(
-            line => line.LineNumber,
-            line => line.Content);
-        view.Render(lineContentsByNumber);
+        view.Render(model.EditorText);
 
-        // TODO NOOOOOOOOOOO !!!, let the model do it by itself, ask the view to go to resulting coordinates
-        model.EditorText.Navigate(EditorText.NavigationDestination.End);
+        {
+            // TODO NOOOOOOOOOOO !!!, let the model do it by itself, ask the view to go to resulting coordinates
+            model.EditorText.Navigate(EditorText.NavigationDestination.End);
 
-        // TODO v-scroll if not visible line !!
-        // TODO h-scroll if not visible column !!
+            // TODO v-scroll if not visible line !!
+            // TODO h-scroll if not visible column !!
+        }
+
+        // TODO The block above is being replaced by this block
+        {
+            view.ScrollTo(model.EditorText.LineNumber, model.EditorText.ColumnNumber);
+        }
 
         view.PressedKey += OnPressedKey;
     }
@@ -30,7 +34,6 @@ internal class EditorPresenter
     private void OnPressedKey(object? sender, char e)
     {
         _model.EditorText.Write(e);
-        var lines = _model.EditorText.Lines.ToDictionary(l => l.LineNumber, l => l.Content);
-        _view.Render(lines);
+        _view.Render(_model.EditorText);
     }
 }

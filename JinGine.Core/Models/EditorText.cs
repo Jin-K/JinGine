@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+
+// IReadOnlyDictionary.TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) is confusing Code analysis,
+// we have "Nullable" turned on, so we need to make the TValue argument nullable (string?)
+#pragma warning disable CS8767
 
 namespace JinGine.Core.Models;
 
 /// <summary>
 /// Represents a mutable &amp; navigable text to use within an editor.
 /// </summary>
-public class EditorText
+public class EditorText : IReadOnlyDictionary<int, string>
 {
     public enum NavigationDestination
     {
@@ -88,6 +95,17 @@ public class EditorText
         _caret = new EditorCaret(offset, columnNumber, segment.LineNumber);
     }
 
+    public IEnumerator<KeyValuePair<int, string>> GetEnumerator()
+    {
+        // TODO probably better to have a custom enumerator implementation !!
+        // this is creating a new dictionary EACH TIME we enumerate the text lines
+        // we already have a private IReadOnlyList that could be accessed smartly
+        var dico = Lines.ToDictionary(l => l.LineNumber, l => l.Content);
+        return dico.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     /// <summary>
     /// Converts the value of this instance to a <see cref="string"/>.
     /// </summary>
@@ -125,4 +143,41 @@ public class EditorText
         _textBuilder.Insert(offset, Environment.NewLine);
         offset += Environment.NewLine.Length;
     }
+
+    public int Count => Lines.Count;
+
+    public bool ContainsKey(int key)
+    {
+        if (key < 1) throw new ArgumentOutOfRangeException(nameof(key), "Should be 1 or more.");
+        return key <= Lines.Count; // this is a stupid assumption
+    }
+    
+    public bool TryGetValue(int key, out string? value)
+    {
+        if (key < 1) throw new ArgumentOutOfRangeException(nameof(key), "Should be 1 or more.");
+
+        if (key <= Lines.Count)
+        {
+            value = this[key];
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public string this[int key]
+    {
+        get
+        {
+            if (key < 1) throw new ArgumentOutOfRangeException(nameof(key), "Should be 1 or more.");
+            if (key > Lines.Count) throw new ArgumentOutOfRangeException(nameof(key), "Can't access a non-existing line.");
+
+            return Lines[key - 1].Content;
+        }
+    }
+
+    public IEnumerable<int> Keys => Lines.Select(l => l.LineNumber);
+
+    public IEnumerable<string> Values => Lines.Select(l => l.Content);
 }
