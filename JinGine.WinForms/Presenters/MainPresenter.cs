@@ -55,7 +55,7 @@ internal class MainPresenter
                 return;
             }
             default:
-                throw new ArgumentOutOfRangeException(nameof(args), $"{nameof(args.FileType)} is not supported.");
+                throw new ArgumentOutOfRangeException(nameof(args), string.Format(ExceptionMessages.MainPresenter_FileType_is_not_supported_, nameof(args.FileType)));
         }
     }
 #pragma warning restore CA1806 // Do not ignore method results

@@ -120,4 +120,7 @@
   <data name="MainPresenter_Cannot_Handle_Type" xml:space="preserve">
     <value>Cannot handle type: {0}</value>
   </data>
+  <data name="MainPresenter_FileType_is_not_supported_" xml:space="preserve">
+    <value>{0} is not supported.</value>
+  </data>
 </root>

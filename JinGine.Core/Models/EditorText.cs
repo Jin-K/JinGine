@@ -39,6 +39,8 @@ public class EditorText : IReadOnlyDictionary<int, string>
         _textBuilder = new StringBuilder(content);
         Lines = new EditorLinesList(content);
         _caret = EditorCaret.Origin;
+
+        Navigate(NavigationDestination.End);
     }
 
     /// <summary>
@@ -54,19 +56,19 @@ public class EditorText : IReadOnlyDictionary<int, string>
     /// <summary>
     /// Gets the number of the line where the caret is positioned.
     /// </summary>
-    public int LineNumber => _caret.Line + 1;
+    public int Line => _caret.LineIndex + 1;
 
     /// <summary>
     /// Gets the number of the column where the caret is positioned.
     /// </summary>
-    public int ColumnNumber => _caret.Column + 1;
+    public int Column => _caret.ColumnIndex + 1;
 
     /// <summary>
     /// Gets the char at current position, or <see langword="null"/> if positioned at the end.
     /// </summary>
     public char? CurrentChar => Position == _textBuilder.Length ? null : _textBuilder[Position];
 
-    public void Navigate(NavigationDestination destination, int offset = 0)
+    private void Navigate(NavigationDestination destination, int offset = 0)
     {
         var length = _textBuilder.Length;
 
@@ -91,8 +93,9 @@ public class EditorText : IReadOnlyDictionary<int, string>
     private void SetCaret(int offset)
     {
         var segment = Lines.GetOverlapping(offset);
-        var columnNumber = offset - segment.TextOffset + 1;
-        _caret = new EditorCaret(offset, columnNumber, segment.LineNumber);
+        var lineIndex = segment.Line - 1;
+        var columnIndex = offset - segment.TextOffset - 1;
+        _caret = new EditorCaret(offset, columnIndex, lineIndex);
     }
 
     public IEnumerator<KeyValuePair<int, string>> GetEnumerator()
@@ -100,7 +103,7 @@ public class EditorText : IReadOnlyDictionary<int, string>
         // TODO probably better to have a custom enumerator implementation !!
         // this is creating a new dictionary EACH TIME we enumerate the text lines
         // we already have a private IReadOnlyList that could be accessed smartly
-        var dico = Lines.ToDictionary(l => l.LineNumber, l => l.Content);
+        var dico = Lines.ToDictionary(l => l.Line, l => l.Content);
         return dico.GetEnumerator();
     }
 
@@ -177,7 +180,7 @@ public class EditorText : IReadOnlyDictionary<int, string>
         }
     }
 
-    public IEnumerable<int> Keys => Lines.Select(l => l.LineNumber);
+    public IEnumerable<int> Keys => Lines.Select(l => l.Line);
 
     public IEnumerable<string> Values => Lines.Select(l => l.Content);
 }

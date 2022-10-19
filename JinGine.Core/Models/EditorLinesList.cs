@@ -16,8 +16,8 @@ public class EditorLinesList : IReadOnlyList<EditorLinesList.LineSegment>
     /// </summary>
     /// <param name="Content">The line-segment text content.</param>
     /// <param name="TextOffset">The offset in the original text where this line-segment begins.</param>
-    /// <param name="LineNumber">The line-number of this segment in the original text.</param>
-    public record LineSegment(string Content, int TextOffset, int LineNumber);
+    /// <param name="Line">The line-number of this segment in the original text.</param>
+    public record LineSegment(string Content, int TextOffset, int Line);
     
     private LineSegment[] _segments;
 
@@ -93,11 +93,4 @@ public class EditorLinesList : IReadOnlyList<EditorLinesList.LineSegment>
     //
 
     public LineSegment this[int index] => _segments[index];
-
-    /// <summary>Decorates <see cref="object.ToString"/>.</summary>
-    /// <remarks>Gets a more or less readable string to represent the lines.</remarks>
-    /// <returns>A new readable string representation.</returns>
-    public override string ToString() => string.Join(
-        Environment.NewLine,
-        _segments.Select(s => $"L{(s.LineNumber):d6}: {s.Content}"));
 }

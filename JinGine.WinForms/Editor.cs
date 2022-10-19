@@ -8,39 +8,37 @@ namespace JinGine.WinForms;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
-    [Flags]
-    public enum Flags
-    {
-        None                = 0x00,
-        HorizontalScroll    = 0x01,
-        LeftArrowQuits      = 0x02,
-        BaseHotKey          = 0x04,
-    }
-
     private readonly FontDescriptor _font;
 
     private IReadOnlyDictionary<int, string>? _textLinesByNumber;
-
-    // TODO struct VisibleTextMask, and make it part of the model
-    private int _visibleColumnsCount;
-    private int _visibleRowsCount;
+    private int _currentLine = 1;
+    private int _currentColumn = 1;
 
     public event EventHandler<char>? PressedKey;
 
-    private int ScrollH => _hScrollBar?.Value ?? 0;
-    private int ScrollV => _vScrollBar.Value;
+    private int ScrollH
+    {
+        get => _hScrollBar?.Value ?? throw new InvalidOperationException("No horizontal scrollbar !!");
+        set => (_hScrollBar ?? throw new InvalidOperationException("No horizontal scrollbar !!")).Value = value;
+    }
+
+    private int ScrollV
+    {
+        get => _vScrollBar.Value;
+        set => _vScrollBar.Value = value;
+    }
 
     /// <summary>
     /// Creates an instance of the <see cref="Editor"/> class.
     /// </summary>
     /// <remarks>Visual Studio Designer needs a constructor without parameters.</remarks>
-    public Editor() : this(Flags.HorizontalScroll) {}
+    public Editor() : this(true) {}
 
     /// <summary>
     /// Creates an instance of the <see cref="Editor"/> class.
     /// </summary>
-    /// <param name="flags">flags for control style & behavior</param>
-    public Editor(Flags flags)
+    /// <param name="withHorizontalScroll">Indicates if we want an horizontal scrollbar.</param>
+    private Editor(bool withHorizontalScroll)
     {
         InitializeComponent();
 
@@ -48,7 +46,7 @@ public partial class Editor : UserControl, IEditorView
         base.Font = _font.Font;
         SetStyle(ControlStylesHelper.DoubleBufferedInputControl, true);
 
-        if ((flags & Flags.HorizontalScroll) is not Flags.HorizontalScroll)
+        if (withHorizontalScroll is false)
         {
             _hScrollBar.Scroll -= HScrollBar_Scroll;
             Controls.Remove(_hScrollBar);
@@ -74,22 +72,50 @@ public partial class Editor : UserControl, IEditorView
     }
 
     /// <summary>
-    /// Scrolls the view to specific cartesian coordinates in the text it displays.
+    /// Scrolls the view to specific cartesian coordinates in the text that is shown.
     /// </summary>
     /// <param name="line">The line number.</param>
     /// <param name="column">The column number in that line.</param>
     public void ScrollTo(int line, int column)
     {
-        //// check if line is inside future VisibleTextMask, if no =>
-            //// compute and set ScrollV value
-
-        //// check if column is inside future VisibleTextMask, if no =>
-            //// compute and set ScrollH value
+        _currentLine = line;
+        _currentColumn = column;
+        ResetScrollbars();
     }
+
+    private int GetPaintZoneTop(int line) => ClientRectangle.Top + (line - 1 - ScrollV) * _font.Height;
 
     private void ResetScrollbars()
     {
-        //throw new NotImplementedException("TODO");
+        // TODO optimize
+        var paintZoneTop = GetPaintZoneTop(_currentLine);
+        while (paintZoneTop < ClientRectangle.Top)
+        {
+            ScrollV--;
+            paintZoneTop += _font.Height;
+        }
+
+        var hScrollBarHeight = _hScrollBar?.Height ?? 0;
+        var paintZoneBottom = paintZoneTop + _font.Height;
+        while (paintZoneBottom > ClientRectangle.Bottom - hScrollBarHeight)
+        {
+            ScrollV++;
+            paintZoneBottom -= _font.Height;
+        }
+
+        var paintZoneLeft = ClientRectangle.Left + (_currentColumn - 1 - ScrollH) * _font.Width;
+        while (paintZoneLeft < ClientRectangle.Left)
+        {
+            ScrollH--;
+            paintZoneLeft += _font.Width;
+        }
+
+        var paintZoneRight = paintZoneLeft + _font.Width;
+        while (paintZoneRight > ClientRectangle.Right - _vScrollBar.Width)
+        {
+            ScrollH++;
+            paintZoneRight -= _font.Width;
+        }
     }
 
     private void Editor_KeyPress(object sender, KeyPressEventArgs e)
@@ -103,14 +129,15 @@ public partial class Editor : UserControl, IEditorView
         if (_textLinesByNumber is null) return;
 
         var textBackgroundBrush = new SolidBrush(Color.White);
+        var maxVisibleColumns = (Width / _font.Width).Crop(1, int.MaxValue);
 
-        foreach (var (lineNumber, content) in _textLinesByNumber.Skip(ScrollV))
+        foreach (var (line, content) in _textLinesByNumber.Skip(ScrollV))
         {
-            var visibleColumnsCountReq = content.Length - ScrollH;
-            var visibleColumnsCount = visibleColumnsCountReq.Crop(0, _visibleColumnsCount);
+            var visibleColumnsReq = content.Length - ScrollH;
+            var visibleColumns = visibleColumnsReq.Crop(0, maxVisibleColumns);
 
-            var paintZoneTop = ClientRectangle.Top + (lineNumber - 1 - ScrollV) * _font.Height;
-            var paintZoneWidth = visibleColumnsCount * _font.Width + _font.RightMargin;
+            var paintZoneTop = GetPaintZoneTop(line);
+            var paintZoneWidth = visibleColumns * _font.Width + _font.RightMargin;
             var paintZone = new Rectangle(ClientRectangle.Left, paintZoneTop, paintZoneWidth, _font.Height);
 
             if (paintZone.Top >= ClientRectangle.Bottom) break;
@@ -124,26 +151,15 @@ public partial class Editor : UserControl, IEditorView
                 paintZone.Width - _font.RightMargin,
                 paintZone.Height + 1);
 
-            if (visibleColumnsCount <= 0) continue;
+            if (visibleColumns <= 0) continue;
 
             const TextFormatFlags textFormatFlags = TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
-            var lineText = content.ToPrintable(ScrollH, visibleColumnsCount);
+            var lineText = content.ToPrintable(ScrollH, visibleColumns);
             TextRenderer.DrawText(e.Graphics, lineText, Font, paintZone, Color.Black, textFormatFlags);
         }
     }
 
-    private void Editor_SizeChanged(object sender, EventArgs e)
-    {
-        var hScrollBarHeight = _hScrollBar?.Height ?? 0;
-
-        _visibleColumnsCount = Width / _font.Width;
-        if (_visibleColumnsCount < 1) _visibleColumnsCount = 1;
-
-        _visibleRowsCount = (Height - hScrollBarHeight) / _font.Height;
-        if (_visibleRowsCount < 1) _visibleRowsCount = 1;
-
-        ResetScrollbars();
-    }
+    private void Editor_SizeChanged(object sender, EventArgs e) => ResetScrollbars();
 
     private void HScrollBar_Scroll(object? sender, ScrollEventArgs e)
     {

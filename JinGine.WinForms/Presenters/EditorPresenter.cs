@@ -14,19 +14,7 @@ internal class EditorPresenter
         _model = model;
         
         view.Render(model.EditorText);
-
-        {
-            // TODO NOOOOOOOOOOO !!!, let the model do it by itself, ask the view to go to resulting coordinates
-            model.EditorText.Navigate(EditorText.NavigationDestination.End);
-
-            // TODO v-scroll if not visible line !!
-            // TODO h-scroll if not visible column !!
-        }
-
-        // TODO The block above is being replaced by this block
-        {
-            view.ScrollTo(model.EditorText.LineNumber, model.EditorText.ColumnNumber);
-        }
+        view.ScrollTo(model.EditorText.Line, model.EditorText.Column);
 
         view.PressedKey += OnPressedKey;
     }

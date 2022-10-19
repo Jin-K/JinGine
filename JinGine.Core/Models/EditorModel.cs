@@ -19,9 +19,9 @@ public class EditorModel
         var sb = new StringBuilder()
             .Append(_fileName)
             .AppendSpace(2).Append('L')
-            .Append($"{EditorText.LineNumber:d6}")
+            .Append($"{EditorText.Line:d6}")
             .AppendSpace().Append('C')
-            .Append($"{EditorText.ColumnNumber:d4}")
+            .Append($"{EditorText.Column:d4}")
             .AppendSpace().Append('P')
             .Append($"{EditorText.Position:d7}");
 
