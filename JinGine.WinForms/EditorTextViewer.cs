@@ -15,8 +15,9 @@ namespace JinGine.WinForms
         public EditorTextViewer()
         {
             InitializeComponent();
+            MouseWheel += OnMouseWheel;
             _font = FontDescriptor.DefaultFixed;
-            base.Font = _font.Font;
+            base.Font = FontDescriptor.DefaultFixed.Font;
             base.DoubleBuffered = true;
 
             KeyPressed = delegate {};
@@ -31,9 +32,21 @@ namespace JinGine.WinForms
 
         private int GetPaintZoneTop(int lineIndex) => ClientRectangle.Top + (lineIndex - _vScrollBar.Value) * _font.Height;
 
+        private void OnMouseClick(object sender, MouseEventArgs e)
+        {
+            // TODO find cartesian coordinates from e and set CaretPoint
+        }
+
         private void OnMouseWheel(object? sender, MouseEventArgs e)
         {
-            throw new NotImplementedException("TODO");
+            var deltaScroll = Math.Sign(e.Delta) * SystemInformation.MouseWheelScrollLines;
+            if (deltaScroll is not 0)
+            {
+                var newScrollV = _vScrollBar.Value - deltaScroll;
+                if (newScrollV < 0 || newScrollV > _vScrollBar.Maximum) return;
+                _vScrollBar.Value = newScrollV;
+                Invalidate();
+            }
         }
 
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();
