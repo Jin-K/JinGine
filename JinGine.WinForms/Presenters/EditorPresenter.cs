@@ -1,27 +1,44 @@
-﻿using JinGine.Core.Models;
+﻿using JinGine.Core.BusinessLogic;
+using JinGine.Core.Models;
 using JinGine.WinForms.Views;
+using LegacyFwk;
 
 namespace JinGine.WinForms.Presenters;
 
 internal class EditorPresenter
 {
     private readonly IEditorView _view;
-    private readonly EditorModel _model;
+    private readonly Editor2DText _model;
+    private readonly IEditor2DTextWriter _writer;
+    private readonly IEditor2DTextReader _reader;
 
-    internal EditorPresenter(IEditorView view, EditorModel model)
+    internal EditorPresenter(IEditorView view, string fileName)
     {
         _view = view;
-        _model = model;
-        
-        view.Render(model.EditorText);
-        view.ScrollTo(model.EditorText.Line, model.EditorText.Column);
+        _model = new Editor2DText(FileManager.GetTextContent(fileName));
+        _writer = new Editor2DTextWriter(_model);
+        _reader = new Editor2DTextReader(_model);
 
-        view.PressedKey += OnPressedKey;
+        view.KeyPressed += OnKeyPressed;
+
+        _view.SetLines(_reader.ReadLines());
+        SetCaretPositionInView();
     }
 
-    private void OnPressedKey(object? sender, char e)
+    private void OnKeyPressed(object? sender, char e)
     {
-        _model.EditorText.Write(e);
-        _view.Render(_model.EditorText);
+        _writer.Write(e);
+        _view.SetLines(_reader.ReadLines());
+        SetCaretPositionInView();
+    }
+
+    private void SetCaretPositionInView()
+    {
+        var offset = _writer.PositionInText;
+        var lineIndex = _model.TakeWhile(ls => ls.OffsetInText <= offset).Skip(1).Count();
+        var textLine = _model[lineIndex];
+        var line = lineIndex + 1;
+        var column = offset - textLine.OffsetInText + 1;
+        _view.SetCaretPosition(line, column, offset);
     }
 }

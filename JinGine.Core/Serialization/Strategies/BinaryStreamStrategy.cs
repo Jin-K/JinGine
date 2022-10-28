@@ -25,7 +25,7 @@ public sealed class BinaryStreamStrategy : IStrategy, IDisposable
     {
         _stream.Seek(0, SeekOrigin.Begin);
         _formatter.Serialize(_stream, data);
-        _stream.Truncate();
+        _stream.SetLength(_stream.Position);
     }
 
     public void Dispose() => _stream.Dispose();

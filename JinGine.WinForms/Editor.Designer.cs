@@ -28,47 +28,80 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this._vScrollBar = new System.Windows.Forms.VScrollBar();
-            this._hScrollBar = new System.Windows.Forms.HScrollBar();
+            this._editorTextViewer = new JinGine.WinForms.EditorTextViewer();
+            this._panel = new System.Windows.Forms.Panel();
+            this._lineLabel = new System.Windows.Forms.Label();
+            this._columnLabel = new System.Windows.Forms.Label();
+            this._offsetLabel = new System.Windows.Forms.Label();
+            this._panel.SuspendLayout();
             this.SuspendLayout();
             // 
-            // _vScrollBar
+            // _editorTextViewer
             // 
-            this._vScrollBar.Dock = System.Windows.Forms.DockStyle.Right;
-            this._vScrollBar.Location = new System.Drawing.Point(483, 0);
-            this._vScrollBar.Name = "_vScrollBar";
-            this._vScrollBar.Padding = new System.Windows.Forms.Padding(0, 5, 0, 10);
-            this._vScrollBar.Size = new System.Drawing.Size(17, 500);
-            this._vScrollBar.TabIndex = 0;
-            this._vScrollBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.VScrollBar_Scroll);
+            this._editorTextViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._editorTextViewer.Font = new System.Drawing.Font("Courier New", 8.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this._editorTextViewer.Location = new System.Drawing.Point(0, 0);
+            this._editorTextViewer.Name = "_editorTextViewer";
+            this._editorTextViewer.Size = new System.Drawing.Size(500, 477);
+            this._editorTextViewer.TabIndex = 2;
             // 
-            // _hScrollBar
+            // _panel
             // 
-            this._hScrollBar.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this._hScrollBar.Location = new System.Drawing.Point(0, 483);
-            this._hScrollBar.Name = "_hScrollBar";
-            this._hScrollBar.Size = new System.Drawing.Size(483, 17);
-            this._hScrollBar.TabIndex = 1;
-            this._hScrollBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.HScrollBar_Scroll);
+            this._panel.Controls.Add(this._offsetLabel);
+            this._panel.Controls.Add(this._columnLabel);
+            this._panel.Controls.Add(this._lineLabel);
+            this._panel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this._panel.Location = new System.Drawing.Point(0, 477);
+            this._panel.Name = "_panel";
+            this._panel.Size = new System.Drawing.Size(500, 23);
+            this._panel.TabIndex = 3;
+            // 
+            // _lineLabel
+            // 
+            this._lineLabel.AutoSize = true;
+            this._lineLabel.Location = new System.Drawing.Point(3, 3);
+            this._lineLabel.Name = "_lineLabel";
+            this._lineLabel.Size = new System.Drawing.Size(71, 15);
+            this._lineLabel.TabIndex = 0;
+            this._lineLabel.Text = "Line: 123456";
+            // 
+            // _columnLabel
+            // 
+            this._columnLabel.AutoSize = true;
+            this._columnLabel.Location = new System.Drawing.Point(80, 3);
+            this._columnLabel.Name = "_columnLabel";
+            this._columnLabel.Size = new System.Drawing.Size(86, 15);
+            this._columnLabel.TabIndex = 1;
+            this._columnLabel.Text = "Column: 12345";
+            // 
+            // _offsetLabel
+            // 
+            this._offsetLabel.AutoSize = true;
+            this._offsetLabel.Location = new System.Drawing.Point(172, 3);
+            this._offsetLabel.Name = "_offsetLabel";
+            this._offsetLabel.Size = new System.Drawing.Size(87, 15);
+            this._offsetLabel.TabIndex = 2;
+            this._offsetLabel.Text = "Offset: 1234567";
             // 
             // Editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this._hScrollBar);
-            this.Controls.Add(this._vScrollBar);
+            this.Controls.Add(this._editorTextViewer);
+            this.Controls.Add(this._panel);
             this.Name = "Editor";
             this.Size = new System.Drawing.Size(500, 500);
-            this.SizeChanged += new System.EventHandler(this.Editor_SizeChanged);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Editor_Paint);
-            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Editor_KeyPress);
+            this._panel.ResumeLayout(false);
+            this._panel.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
-
-        private VScrollBar _vScrollBar;
-        private HScrollBar _hScrollBar;
+        private EditorTextViewer _editorTextViewer;
+        private Panel _panel;
+        private Label _lineLabel;
+        private Label _offsetLabel;
+        private Label _columnLabel;
     }
 }

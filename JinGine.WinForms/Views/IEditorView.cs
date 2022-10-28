@@ -2,8 +2,12 @@
 
 internal interface IEditorView
 {
-    event EventHandler<char> PressedKey;
+    int Line { get; }
+    int Column { get; }
+    int Offset { get; }
 
-    void Render(IReadOnlyDictionary<int, string> textLinesByNumber);
-    void ScrollTo(int line, int column);
+    event EventHandler<char> KeyPressed;
+
+    void SetLines(string[] textLines);
+    void SetCaretPosition(int line, int column, int offset);
 }

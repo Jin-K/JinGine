@@ -7,6 +7,9 @@
     <Compile Update="Editor.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="EditorTextViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -17,9 +17,7 @@ internal class MainPresenter
         _mainView = mainView;
         _mainView.ClickedOpenFile += OnClickOpenFile;
     }
-
-    // ReSharper disable ObjectCreationAsStatement
-#pragma warning disable CA1806 // Do not ignore method results
+    
     private void OnClickOpenFile(object? sender, ClickOpenFileEventArgs args)
     {
         var fileName = FileManager.ExpandPath(Path.Combine(Settings.Default.FilesPath, args.FileName));
@@ -31,10 +29,10 @@ internal class MainPresenter
                 using var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
                 var serializer = new StrategySerializer(new BinaryStreamStrategy(fs));
                 var data = serializer.Deserialize<DataTable>();
+                
                 var model = new DataGridModel(data);
-
                 var view = new DataGrid();
-                new DataGridPresenter(view, model);
+                view.Tag = new DataGridPresenter(view, model);
 
                 _mainView.ShowInNewTab(fileName, view);
                 return;
@@ -44,12 +42,8 @@ internal class MainPresenter
                 if (FileManager.IsUrl(fileName) is not true)
                     FileManager.AskCreateFileIfNotFound(fileName);
                 
-                var model = new EditorModel(
-                    new EditorText(FileManager.GetTextContent(fileName)),
-                    fileName);
-
                 var view = new Editor { Dock = DockStyle.Fill };
-                new EditorPresenter(view, model);
+                view.Tag = new EditorPresenter(view, fileName);
 
                 _mainView.ShowInNewTab(fileName, view);
                 return;
@@ -58,6 +52,4 @@ internal class MainPresenter
                 throw new ArgumentOutOfRangeException(nameof(args), string.Format(ExceptionMessages.MainPresenter_FileType_is_not_supported_, nameof(args.FileType)));
         }
     }
-#pragma warning restore CA1806 // Do not ignore method results
-    // ReSharper restore ObjectCreationAsStatement
 }
