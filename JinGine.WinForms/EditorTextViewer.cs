@@ -7,7 +7,8 @@ namespace JinGine.WinForms
         private readonly FontDescriptor _font;
         private string[]? _lines;
 
-        public event EventHandler<char>? KeyPressed;
+        public event EventHandler<char> KeyPressed;
+        public event EventHandler<Point> CaretPointChanged;
 
         internal Point CaretPoint { private get; set; }
 
@@ -17,6 +18,9 @@ namespace JinGine.WinForms
             _font = FontDescriptor.DefaultFixed;
             base.Font = _font.Font;
             base.DoubleBuffered = true;
+
+            KeyPressed = delegate {};
+            CaretPointChanged = delegate {};
         }
 
         public void SetLines(string[] lines)
@@ -27,13 +31,63 @@ namespace JinGine.WinForms
 
         private int GetPaintZoneTop(int lineIndex) => ClientRectangle.Top + (lineIndex - _vScrollBar.Value) * _font.Height;
 
+        private void OnMouseWheel(object? sender, MouseEventArgs e)
+        {
+            throw new NotImplementedException("TODO");
+        }
+
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();
 
         private void OnVScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();
 
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (_lines is null) return;
+            if (e.KeyCode is not Keys.Left and not Keys.Right and not Keys.Down and not Keys.Up) return;
+
+            // TODO all this logic could go to the presenter ??
+            var point = CaretPoint; // copying
+            switch (e.KeyCode)
+            {
+                case Keys.Left:
+                    if (point.X > 0) point.X--;
+                    else if (point.Y > 0)
+                    {
+                        point.Y--;
+                        point.X = _lines[point.Y].Length;
+                    }
+                    break;
+                case Keys.Right:
+                    if (point.X < _lines[point.Y].Length) point.X++;
+                    else if (point.Y + 1 < _lines.Length)
+                    {
+                        point.Y++;
+                        point.X = 0;
+                    }
+                    break;
+                case Keys.Up:
+                    if (point.Y > 0)
+                    {
+                        point.Y--;
+                        point.X = Math.Min(point.X, _lines[point.Y].Length);
+                    }
+                    break;
+                case Keys.Down:
+                    if (point.Y + 1 < _lines.Length)
+                    {
+                        point.Y++;
+                        point.X = Math.Min(point.X, _lines[point.Y].Length);
+                    }
+                    break;
+            }
+
+            if (point == CaretPoint) return;
+            CaretPointChanged(this, point);
+        }
+
         private void OnKeyPress(object? sender, KeyPressEventArgs e)
         {
-            KeyPressed?.Invoke(this, e.KeyChar);
+            KeyPressed(this, e.KeyChar);
             e.Handled = true;
         }
 
@@ -73,6 +127,12 @@ namespace JinGine.WinForms
                 var lineText = lineContent.ToPrintable(_hScrollBar.Value, visibleColumns);
                 TextRenderer.DrawText(e.Graphics, lineText, Font, paintZone, Color.Black, textFormatFlags);
             }
+        }
+
+        private void OnPreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode is Keys.Left or Keys.Right or Keys.Down or Keys.Up)
+                e.IsInputKey = true;
         }
 
         private void ScrollToCaretPoint()

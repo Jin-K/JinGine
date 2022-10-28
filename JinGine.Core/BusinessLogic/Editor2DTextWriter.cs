@@ -20,6 +20,11 @@ public class Editor2DTextWriter : IEditor2DTextWriter
 
     public override string ToString() => _textBuilder.ToString();
 
+    public void GoTo(int positionInText)
+    {
+        PositionInText = positionInText;
+    }
+
     public void Write(char value)
     {
         switch (value)

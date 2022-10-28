@@ -20,9 +20,17 @@ internal class EditorPresenter
         _reader = new Editor2DTextReader(_model);
 
         view.KeyPressed += OnKeyPressed;
+        view.CaretPointChanged += OnCaretPointChanged;
 
         _view.SetLines(_reader.ReadLines());
         SetCaretPositionInView();
+    }
+
+    private void OnCaretPointChanged(object? sender, Point e)
+    {
+        var segment = _model[e.Y];
+        _writer.GoTo(segment.OffsetInText + e.X);
+        _view.SetCaretPosition(e.Y + 1, e.X + 1, _writer.PositionInText);
     }
 
     private void OnKeyPressed(object? sender, char e)
@@ -35,10 +43,10 @@ internal class EditorPresenter
     private void SetCaretPositionInView()
     {
         var offset = _writer.PositionInText;
-        var lineIndex = _model.TakeWhile(ls => ls.OffsetInText <= offset).Skip(1).Count();
-        var textLine = _model[lineIndex];
-        var line = lineIndex + 1;
-        var column = offset - textLine.OffsetInText + 1;
+        var segmentIndex = _model.TakeWhile(ls => ls.OffsetInText <= offset).Skip(1).Count();
+        var segment = _model[segmentIndex];
+        var line = segmentIndex + 1;
+        var column = offset - segment.OffsetInText + 1;
         _view.SetCaretPosition(line, column, offset);
     }
 }

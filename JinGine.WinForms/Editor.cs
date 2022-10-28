@@ -7,22 +7,14 @@ namespace JinGine.WinForms;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
-    public int Line
-    {
-        get => Convert.ToInt32(_lineLabel.Text);
-        private set => _lineLabel.Text = Convert.ToString(value);
-    }
+    private int Line { set => _lineLabel.Text = Convert.ToString(value); }
+    private int Column { set => _columnLabel.Text = Convert.ToString(value); }
+    private int Offset { set => _offsetLabel.Text = Convert.ToString(value); }
 
-    public int Column
+    public event EventHandler<Point> CaretPointChanged
     {
-        get => Convert.ToInt32(_columnLabel.Text);
-        private set => _columnLabel.Text = Convert.ToString(value);
-    }
-
-    public int Offset
-    {
-        get => Convert.ToInt32(_offsetLabel.Text);
-        private set => _offsetLabel.Text = Convert.ToString(value);
+        add => _editorTextViewer.CaretPointChanged += value;
+        remove => _editorTextViewer.CaretPointChanged -= value;
     }
 
     public event EventHandler<char> KeyPressed
@@ -30,7 +22,7 @@ public partial class Editor : UserControl, IEditorView
         add => _editorTextViewer.KeyPressed += value;
         remove => _editorTextViewer.KeyPressed -= value;
     }
-    
+
     public Editor() => InitializeComponent();
 
     public void SetLines(string[] textLines) => _editorTextViewer.SetLines(textLines);

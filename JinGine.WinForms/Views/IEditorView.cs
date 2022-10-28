@@ -2,11 +2,8 @@
 
 internal interface IEditorView
 {
-    int Line { get; }
-    int Column { get; }
-    int Offset { get; }
-
     event EventHandler<char> KeyPressed;
+    event EventHandler<Point> CaretPointChanged;
 
     void SetLines(string[] textLines);
     void SetCaretPosition(int line, int column, int offset);
