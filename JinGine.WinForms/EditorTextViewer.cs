@@ -31,11 +31,7 @@ namespace JinGine.WinForms
             
             this.InitArrowKeyDownFiring();
             this.InitMouseWheelScrolling(_vScrollBar);
-            this.InitWin32Caret(
-                _font.Width,
-                _font.Height,
-                () => (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
-                () => (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
+            this.InitWin32Caret(_font.Width, _font.Height, GetCaretPointProjection);
 
             KeyPressed = delegate {};
             CaretPointChanged = delegate {};
@@ -49,6 +45,10 @@ namespace JinGine.WinForms
             Invalidate();
         }
 
+        private Point GetCaretPointProjection() => new(
+            (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
+            (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
+
         private int GetPaintZoneTop(int lineIndex) => ClientRectangle.Top + (lineIndex - _vScrollBar.Value) * _font.Height;
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
@@ -56,7 +56,8 @@ namespace JinGine.WinForms
             var lineNumber = _vScrollBar.Value + (e.Y + _font.Height - 1) / _font.Height;
             var columnNumber = _hScrollBar.Value + (e.X + _font.Width - 1 - _font.LeftMargin) / _font.Width;
             CaretPoint = new Point(columnNumber - 1, lineNumber - 1);
-            Invalidate();
+            var viewRelativeCaretPoint = GetCaretPointProjection();
+            this.SetCaretPos(viewRelativeCaretPoint.X, viewRelativeCaretPoint.Y);
         }
 
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();

@@ -30,23 +30,16 @@ public static class UserControlExtensions
     }
 
     // TODO handle errors, convert them to exceptions
-    public static void InitWin32Caret(this UserControl userControl, int width, int height, Func<int> xResolver, Func<int> yResolver)
+    public static void InitWin32Caret(this UserControl userControl, int width, int height, Func<Point> caretPointResolver)
     {
-        void ResetCaretPos()
-        {
-            if (!Succeeded(SetCaretPos(xResolver(), yResolver())))
-            {
-                var unused = Marshal.GetLastWin32Error();
-            }
-        }
-
         userControl.GotFocus += delegate
         {
             if (!Succeeded(CreateCaret(userControl.Handle, IntPtr.Zero, width, height)))
             {
                 var unused = Marshal.GetLastWin32Error();
             }
-            ResetCaretPos();
+            var caretPoint = caretPointResolver();
+            userControl.SetCaretPos(caretPoint.X, caretPoint.Y);
             if (!Succeeded(ShowCaret(userControl.Handle)))
             {
                 var unused = Marshal.GetLastWin32Error();
@@ -59,7 +52,19 @@ public static class UserControlExtensions
                 var unused = Marshal.GetLastWin32Error();
             }
         };
-        userControl.Paint += delegate { ResetCaretPos(); };
+        userControl.Paint += delegate
+        {
+            var caretPoint = caretPointResolver();
+            userControl.SetCaretPos(caretPoint.X, caretPoint.Y);
+        };
+    }
+
+    public static void SetCaretPos(this UserControl _, int x, int y)
+    {
+        if (!Succeeded(SetCaretPos(x, y)))
+        {
+            var unused = Marshal.GetLastWin32Error();
+        }
     }
 
     private static bool Succeeded(int returnValue) => returnValue is not 0;
