@@ -1,6 +1,4 @@
-﻿using JinGine.Core;
-
-// ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
 namespace System.Windows.Forms;
 
 public static class ToolStripMenuItemExtensions

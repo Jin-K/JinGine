@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using LegacyFwk;
+﻿using LegacyFwk;
 
 namespace JinGine.WinForms
 {
@@ -17,11 +16,15 @@ namespace JinGine.WinForms
         {
             InitializeComponent();
             MouseWheel += OnMouseWheel;
-            GotFocus += OnGotFocus;
-            LostFocus += OnLostFocus;
             _font = FontDescriptor.DefaultFixed;
             base.Font = FontDescriptor.DefaultFixed.Font;
             base.DoubleBuffered = true;
+            
+            this.InitWin32Caret(
+                _font.Width,
+                _font.Height,
+                () => (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
+                () => (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
 
             KeyPressed = delegate {};
             CaretPointChanged = delegate {};
@@ -34,18 +37,6 @@ namespace JinGine.WinForms
         }
 
         private int GetPaintZoneTop(int lineIndex) => ClientRectangle.Top + (lineIndex - _vScrollBar.Value) * _font.Height;
-
-        private void OnGotFocus(object? sender, EventArgs e)
-        {
-            _ = User32.CreateCaret(Handle, new IntPtr(0), _font.Width, _font.Height);
-            ResetCaretPos();
-            _ = User32.ShowCaret(Handle);
-        }
-
-        private void OnLostFocus(object? sender, EventArgs e)
-        {
-            _ = User32.DestroyCaret();
-        }
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
@@ -155,21 +146,12 @@ namespace JinGine.WinForms
                 var lineText = lineContent.ToPrintable(_hScrollBar.Value, visibleColumns);
                 TextRenderer.DrawText(e.Graphics, lineText, Font, paintZone, Color.Black, textFormatFlags);
             }
-            
-            ResetCaretPos();
         }
 
         private void OnPreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
         {
             if (e.KeyCode is Keys.Left or Keys.Right or Keys.Down or Keys.Up)
                 e.IsInputKey = true;
-        }
-
-        private void ResetCaretPos()
-        {
-            _ = User32.SetCaretPos(
-                (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
-                (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
         }
 
         private void ScrollToCaretPoint()
@@ -199,21 +181,6 @@ namespace JinGine.WinForms
             var paintZoneRight = paintZoneLeft + _font.Width;
             var deltaRight = paintZoneRight - (ClientRectangle.Right - _vScrollBar.Width);
             if (deltaRight > 0) _hScrollBar.Value += (deltaRight + _font.Width - 1) / _font.Width;
-        }
-
-        private class User32
-        {
-            [DllImport("user32")]
-            internal static extern int CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
-
-            [DllImport("user32")]
-            internal static extern int DestroyCaret();
-
-            [DllImport("user32")]
-            internal static extern int SetCaretPos(int x, int y);
-
-            [DllImport("user32")]
-            internal static extern int ShowCaret(IntPtr hWnd);
         }
     }
 }
