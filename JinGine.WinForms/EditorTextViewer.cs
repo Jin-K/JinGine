@@ -6,11 +6,21 @@ namespace JinGine.WinForms
     {
         private readonly FontDescriptor _font;
         private string[]? _lines;
+        private Point _caretPoint;
 
         public event EventHandler<char> KeyPressed;
         public event EventHandler<Point> CaretPointChanged;
 
-        internal Point CaretPoint { private get; set; }
+        internal Point CaretPoint
+        {
+            private get => _caretPoint;
+            set
+            {
+                if (_caretPoint == value) return;
+                _caretPoint = value;
+                CaretPointChanged(this, value);
+            }
+        }
 
         public EditorTextViewer()
         {
@@ -91,7 +101,7 @@ namespace JinGine.WinForms
             }
 
             if (point == CaretPoint) return;
-            CaretPointChanged(this, point);
+            CaretPoint = point;
             Invalidate();
         }
 
