@@ -36,7 +36,7 @@ public static class UserControlExtensions
         {
             if (!Succeeded(SetCaretPos(xResolver(), yResolver())))
             {
-                var unused = GetLastError();
+                var unused = Marshal.GetLastWin32Error();
             }
         }
 
@@ -44,19 +44,19 @@ public static class UserControlExtensions
         {
             if (!Succeeded(CreateCaret(userControl.Handle, IntPtr.Zero, width, height)))
             {
-                var unused = GetLastError();
+                var unused = Marshal.GetLastWin32Error();
             }
             ResetCaretPos();
             if (!Succeeded(ShowCaret(userControl.Handle)))
             {
-                var unused = GetLastError();
+                var unused = Marshal.GetLastWin32Error();
             }
         };
         userControl.LostFocus += delegate
         {
             if (!Succeeded(DestroyCaret()))
             {
-                var unused = GetLastError();
+                var unused = Marshal.GetLastWin32Error();
             }
         };
         userControl.Paint += delegate { ResetCaretPos(); };
@@ -75,7 +75,4 @@ public static class UserControlExtensions
 
     [DllImport("user32", SetLastError = true)]
     private static extern int ShowCaret(IntPtr hWnd);
-
-    [DllImport("user32")]
-    private static extern uint GetLastError();
 }
