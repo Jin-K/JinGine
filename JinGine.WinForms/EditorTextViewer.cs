@@ -1,4 +1,4 @@
-﻿using LegacyFwk;
+using LegacyFwk;
 
 namespace JinGine.WinForms
 {
@@ -158,7 +158,7 @@ namespace JinGine.WinForms
             var deltaLeft = ClientRectangle.Left - paintZoneLeft;
             if (deltaLeft > 0 && _hScrollBar.Value > 0)
             {
-                var deltaScrollLeft = (deltaLeft + _font.Width - 1) / _font.Width;
+                var deltaScrollLeft = (deltaLeft + _font.Width - 1 - _font.LeftMargin) / _font.Width;
                 _hScrollBar.Value -= deltaScrollLeft;
                 paintZoneLeft += deltaScrollLeft * _font.Width;
             }
