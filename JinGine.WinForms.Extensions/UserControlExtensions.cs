@@ -30,6 +30,7 @@ public static class UserControlExtensions
     }
 
     // TODO handle errors, convert them to exceptions
+    // TODO make part of new Win32Caret type in Presentation layer
     public static void InitWin32Caret(this UserControl userControl, int width, int height, Func<Point> caretPointResolver)
     {
         userControl.GotFocus += delegate
@@ -59,6 +60,7 @@ public static class UserControlExtensions
         };
     }
 
+    // TODO make part of new Win32Caret type in Presentation layer
     public static void SetCaretPos(this UserControl _, int x, int y)
     {
         if (!Succeeded(SetCaretPos(x, y)))

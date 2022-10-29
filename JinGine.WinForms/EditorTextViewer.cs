@@ -5,6 +5,7 @@ namespace JinGine.WinForms
     public partial class EditorTextViewer : UserControl
     {
         private readonly FontDescriptor _font;
+        private readonly PointsSelector _selector;
         private string[]? _lines;
         private Point _caretPoint;
 
@@ -26,12 +27,13 @@ namespace JinGine.WinForms
         {
             InitializeComponent();
             _font = FontDescriptor.DefaultFixed;
+            _selector = new PointsSelector(this);
             base.Font = _font.Font;
             base.DoubleBuffered = true;
             
             this.InitArrowKeyDownFiring();
             this.InitMouseWheelScrolling(_vScrollBar);
-            this.InitWin32Caret(_font.Width, _font.Height, GetCaretPointProjection);
+            this.InitWin32Caret(_font.Width, _font.Height, GetCaretScreenPosition);
 
             KeyPressed = delegate {};
             CaretPointChanged = delegate {};
@@ -45,7 +47,7 @@ namespace JinGine.WinForms
             Invalidate();
         }
 
-        private Point GetCaretPointProjection() => new(
+        private Point GetCaretScreenPosition() => new(
             (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
             (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
 
@@ -53,11 +55,12 @@ namespace JinGine.WinForms
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
-            var lineNumber = _vScrollBar.Value + (e.Y + _font.Height - 1) / _font.Height;
-            var columnNumber = _hScrollBar.Value + (e.X + _font.Width - 1 - _font.LeftMargin) / _font.Width;
-            CaretPoint = new Point(columnNumber - 1, lineNumber - 1);
-            var viewRelativeCaretPoint = GetCaretPointProjection();
-            this.SetCaretPos(viewRelativeCaretPoint.X, viewRelativeCaretPoint.Y);
+            var caretPointX = _hScrollBar.Value + (e.X - _font.LeftMargin) / _font.Width;
+            var caretPointY = _vScrollBar.Value + e.Y / _font.Height;
+            CaretPoint = new Point(caretPointX, caretPointY);
+            
+            var caretScreenPos = GetCaretScreenPosition();
+            this.SetCaretPos(caretScreenPos.X, caretScreenPos.Y);
         }
 
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();
@@ -151,6 +154,12 @@ namespace JinGine.WinForms
                 var lineText = lineContent.ToPrintable(_hScrollBar.Value, visibleColumns);
                 TextRenderer.DrawText(e.Graphics, lineText, Font, paintZone, Color.Black, textFormatFlags);
             }
+
+            // TODO integrate this in the loop above
+            if (_selector.IsSelecting)
+            {
+                e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.BlueViolet)), _selector.SelectionMask);
+            }
         }
 
         private void ScrollToCaretPoint()
@@ -180,6 +189,54 @@ namespace JinGine.WinForms
             var paintZoneRight = paintZoneLeft + _font.Width;
             var deltaRight = paintZoneRight - (ClientRectangle.Right - _vScrollBar.Width);
             if (deltaRight > 0) _hScrollBar.Value += (deltaRight + _font.Width - 1) / _font.Width;
+        }
+
+        private class PointsSelector
+        {
+            private readonly Control _control;
+            private Point _mouseDownPoint;
+            private Point _mousePoint;
+
+            internal bool IsSelecting { get; private set; }
+
+            internal ref Point Start => ref _mouseDownPoint;
+            internal ref Point End => ref _mousePoint;
+
+            internal Rectangle SelectionMask
+            {
+                get
+                {
+                    var x = Math.Min(Start.X, End.X);
+                    var y = Math.Min(Start.Y, End.Y);
+                    return new Rectangle(x, y, Math.Max(Start.X, End.X) - x, Math.Max(Start.Y, End.Y) - y);
+                }
+            }
+
+            internal PointsSelector(Control control)
+            {
+                _control = control;
+                _mouseDownPoint = Point.Empty;
+                _mousePoint = Point.Empty;
+                IsSelecting = false;
+
+                control.MouseDown += OnMouseDown;
+                control.MouseMove += OnMouseMove;
+                control.MouseUp += OnMouseUp;
+            }
+
+            private void OnMouseDown(object? sender, MouseEventArgs e)
+            {
+                IsSelecting = true;
+                _mousePoint = _mouseDownPoint = e.Location;
+            }
+
+            private void OnMouseMove(object? sender, MouseEventArgs e)
+            {
+                _mousePoint = e.Location;
+                _control.Invalidate();
+            }
+
+            private void OnMouseUp(object? sender, MouseEventArgs e) => IsSelecting = false;
         }
     }
 }
