@@ -1,4 +1,4 @@
-using LegacyFwk;
+﻿using LegacyFwk;
 
 namespace JinGine.WinForms
 {
@@ -53,7 +53,10 @@ namespace JinGine.WinForms
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
-            // TODO find cartesian coordinates from e and set CaretPoint
+            var lineNumber = _vScrollBar.Value + (e.Y + _font.Height - 1) / _font.Height;
+            var columnNumber = _hScrollBar.Value + (e.X + _font.Width - 1 - _font.LeftMargin) / _font.Width;
+            CaretPoint = new Point(columnNumber - 1, lineNumber - 1);
+            Invalidate();
         }
 
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();
