@@ -9,8 +9,8 @@ public static class UserControlExtensions
     {
         userControl.PreviewKeyDown += (_, e) =>
         {
-            if (e.KeyCode is Keys.Left or Keys.Right or Keys.Down or Keys.Up)
-                e.IsInputKey = true;
+            if (e.KeyCode is < Keys.Left or > Keys.Down) return;
+            e.IsInputKey = true;
         };
     }
 
