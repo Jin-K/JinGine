@@ -6,25 +6,32 @@ namespace JinGine.WinForms
     {
         private readonly FontDescriptor _font;
         private string[]? _lines;
+        private Point _caretPoint;
 
         public event EventHandler<char> KeyPressed;
         public event EventHandler<Point> CaretPointChanged;
 
-        internal Point CaretPoint { private get; set; }
+        internal Point CaretPoint
+        {
+            private get => _caretPoint;
+            set
+            {
+                if (_caretPoint == value) return;
+                _caretPoint = value;
+                CaretPointChanged(this, value);
+            }
+        }
 
         public EditorTextViewer()
         {
             InitializeComponent();
-            MouseWheel += OnMouseWheel;
             _font = FontDescriptor.DefaultFixed;
-            base.Font = FontDescriptor.DefaultFixed.Font;
+            base.Font = _font.Font;
             base.DoubleBuffered = true;
             
-            this.InitWin32Caret(
-                _font.Width,
-                _font.Height,
-                () => (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
-                () => (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
+            this.InitArrowKeyDownFiring();
+            this.InitMouseWheelScrolling(_vScrollBar);
+            this.InitWin32Caret(_font.Width, _font.Height, GetCaretPointProjection);
 
             KeyPressed = delegate {};
             CaretPointChanged = delegate {};
@@ -32,27 +39,25 @@ namespace JinGine.WinForms
 
         public void SetLines(string[] lines)
         {
+            if (_lines is not null && _lines.SequenceEqual(lines)) return;
+
             _lines = lines;
             Invalidate();
         }
+
+        private Point GetCaretPointProjection() => new(
+            (CaretPoint.X - _hScrollBar.Value) * _font.Width + _font.LeftMargin,
+            (CaretPoint.Y - _vScrollBar.Value) * _font.Height);
 
         private int GetPaintZoneTop(int lineIndex) => ClientRectangle.Top + (lineIndex - _vScrollBar.Value) * _font.Height;
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
-            // TODO find cartesian coordinates from e and set CaretPoint
-        }
-
-        private void OnMouseWheel(object? sender, MouseEventArgs e)
-        {
-            var deltaScroll = Math.Sign(e.Delta) * SystemInformation.MouseWheelScrollLines;
-            if (deltaScroll is not 0)
-            {
-                var newScrollV = _vScrollBar.Value - deltaScroll;
-                if (newScrollV < 0 || newScrollV > _vScrollBar.Maximum) return;
-                _vScrollBar.Value = newScrollV;
-                Invalidate();
-            }
+            var lineNumber = _vScrollBar.Value + (e.Y + _font.Height - 1) / _font.Height;
+            var columnNumber = _hScrollBar.Value + (e.X + _font.Width - 1 - _font.LeftMargin) / _font.Width;
+            CaretPoint = new Point(columnNumber - 1, lineNumber - 1);
+            var viewRelativeCaretPoint = GetCaretPointProjection();
+            this.SetCaretPos(viewRelativeCaretPoint.X, viewRelativeCaretPoint.Y);
         }
 
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e) => Invalidate();
@@ -62,7 +67,6 @@ namespace JinGine.WinForms
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
             if (_lines is null) return;
-            if (e.KeyCode is not Keys.Left and not Keys.Right and not Keys.Down and not Keys.Up) return;
 
             // TODO all this logic could go to the presenter ??
             var point = CaretPoint; // copying
@@ -101,7 +105,8 @@ namespace JinGine.WinForms
             }
 
             if (point == CaretPoint) return;
-            CaretPointChanged(this, point);
+            CaretPoint = point;
+            Invalidate();
         }
 
         private void OnKeyPress(object? sender, KeyPressEventArgs e)
@@ -148,12 +153,6 @@ namespace JinGine.WinForms
             }
         }
 
-        private void OnPreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
-        {
-            if (e.KeyCode is Keys.Left or Keys.Right or Keys.Down or Keys.Up)
-                e.IsInputKey = true;
-        }
-
         private void ScrollToCaretPoint()
         {
             var paintZoneTop = GetPaintZoneTop(CaretPoint.Y);
@@ -173,7 +172,7 @@ namespace JinGine.WinForms
             var deltaLeft = ClientRectangle.Left - paintZoneLeft;
             if (deltaLeft > 0 && _hScrollBar.Value > 0)
             {
-                var deltaScrollLeft = (deltaLeft + _font.Width - 1) / _font.Width;
+                var deltaScrollLeft = (deltaLeft + _font.Width - 1 - _font.LeftMargin) / _font.Width;
                 _hScrollBar.Value -= deltaScrollLeft;
                 paintZoneLeft += deltaScrollLeft * _font.Width;
             }
