@@ -6,5 +6,7 @@ internal interface IEditorView
     event EventHandler<Point> CaretPointChanged;
 
     void SetLines(string[] textLines);
-    void SetCaretPosition(int line, int column, int offset);
+    void SetCaret(int line, int column, int offset);
+    void SetCharsGrid(CharsGrid charsGrid);
+    void SetFont(Font font);
 }

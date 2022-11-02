@@ -23,6 +23,7 @@ internal class EditorPresenter
         view.CaretPointChanged += OnCaretPointChanged;
 
         _view.SetLines(_reader.ReadLines());
+        _view.SetCharsGrid(CharsGrid.Create(FontDescriptor.DefaultFixed));
         SetCaretPositionInView();
     }
 
@@ -30,7 +31,7 @@ internal class EditorPresenter
     {
         var segment = _model[e.Y];
         _writer.GoTo(segment.OffsetInText + e.X);
-        _view.SetCaretPosition(e.Y + 1, e.X + 1, _writer.PositionInText);
+        _view.SetCaret(e.Y + 1, e.X + 1, _writer.PositionInText);
     }
 
     private void OnKeyPressed(object? sender, char e)
@@ -47,6 +48,6 @@ internal class EditorPresenter
         var segment = _model[segmentIndex];
         var line = segmentIndex + 1;
         var column = offset - segment.OffsetInText + 1;
-        _view.SetCaretPosition(line, column, offset);
+        _view.SetCaret(line, column, offset);
     }
 }
