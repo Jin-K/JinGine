@@ -65,14 +65,14 @@ namespace JinGine.WinForms
         
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
         {
-            _gridProjector.XOffset = e.NewValue;
+            _gridProjector.SetX(e.NewValue);
             _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
             Invalidate();
         }
         
         private void OnVScrollBarScroll(object? sender, ScrollEventArgs e)
         {
-            _gridProjector.YOffset = e.NewValue;
+            _gridProjector.SetY(e.NewValue);
             _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
             Invalidate();
         }
@@ -152,9 +152,9 @@ namespace JinGine.WinForms
             // TODO all this visible and max things can be improved
             var maxVisibleColumns = (Width / _gridProjector.CellSize.Width).Crop(1, int.MaxValue);
             var maxScreenY = ClientRectangle.Bottom - _hScrollBar.Height - 1;
-            var visibleGridLines = _lines.Skip(_gridProjector.YOffset)
-                .Select((l, i) => (i + _gridProjector.YOffset, l));
-            var firstVisGridLineX = _gridProjector.XOffset;
+            var visibleGridLines = _lines.Skip(_gridProjector.Y)
+                .Select((l, i) => (i + _gridProjector.Y, l));
+            var firstVisGridLineX = _gridProjector.X;
 
             foreach (var (i, line) in visibleGridLines)
             {
@@ -172,7 +172,7 @@ namespace JinGine.WinForms
                 e.Graphics.FillRectangle(textBackgroundBrush, bgRect);
 
                 // TODO use ReadOnlySpan<char>
-                var printableLine = line.ToPrintable(_gridProjector.XOffset, visibleColumns);
+                var printableLine = line.ToPrintable(_gridProjector.X, visibleColumns);
                 TextRenderer.DrawText(e.Graphics, printableLine, Font, textRect, Color.Black, TextFFlags);
             }
 
@@ -200,10 +200,10 @@ namespace JinGine.WinForms
             _gridProjector.EnsureProjection(_caretGridLocation);
 
             // TODO raise scroll events
-            if (_hScrollBar.Value != _gridProjector.XOffset || _vScrollBar.Value != _gridProjector.YOffset)
+            if (_hScrollBar.Value != _gridProjector.X || _vScrollBar.Value != _gridProjector.Y)
                 _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation), true);
-            _hScrollBar.Value = _gridProjector.XOffset;
-            _vScrollBar.Value = _gridProjector.YOffset;
+            _hScrollBar.Value = _gridProjector.X;
+            _vScrollBar.Value = _gridProjector.Y;
         }
     }
 }
