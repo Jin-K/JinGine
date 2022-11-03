@@ -58,9 +58,9 @@ namespace JinGine.WinForms
         {
             if (_gridProjector is null) return;
 
-            var gridLocation = _gridProjector.GetGridLocationFromProjection(e.Location);
+            var gridLocation = _gridProjector.ScreenLocationToGridLocation(e.Location);
             SetCaretGridLocation(gridLocation);
-            var caretLocation = _gridProjector.ProjectToScreenLocation(gridLocation);
+            var caretLocation = _gridProjector.GridLocationToScreenLocation(gridLocation);
             _caret.SetLocation(caretLocation);
             Invalidate();
         }
@@ -70,7 +70,7 @@ namespace JinGine.WinForms
             if (_gridProjector is null) return;
 
             _gridProjector.SetX(e.NewValue);
-            _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
+            _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
             Invalidate();
         }
         
@@ -79,7 +79,7 @@ namespace JinGine.WinForms
             if (_gridProjector is null) return;
 
             _gridProjector.SetY(e.NewValue);
-            _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
+            _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
             Invalidate();
         }
         
@@ -129,12 +129,12 @@ namespace JinGine.WinForms
             if ((ModifierKeys & Keys.Shift) is Keys.Shift)
             {
                 // TODO fix
-                _selector.StartSelect(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
-                _selector.EndSelect(_gridProjector.ProjectToScreenLocation(nCGridLoc));
+                _selector.StartSelect(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
+                _selector.EndSelect(_gridProjector.GridLocationToScreenLocation(nCGridLoc));
             }
 
             SetCaretGridLocation(nCGridLoc);
-            _caret.SetLocation(_gridProjector.ProjectToScreenLocation(nCGridLoc));
+            _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(nCGridLoc));
             Invalidate();
         }
         
@@ -173,7 +173,7 @@ namespace JinGine.WinForms
                 if (visibleColumns <= 0) continue;
 
                 var lastVisGridLineX = visibleColumns - 1 + firstVisGridLineX;
-                var textRect = _gridProjector.ProjectToScreenRectangle(
+                var textRect = _gridProjector.GridLocationsToScreenRect(
                     new Point(firstVisGridLineX, i),
                     new Point(lastVisGridLineX, i));
                 if (textRect.Y > maxScreenY) break;
@@ -214,7 +214,7 @@ namespace JinGine.WinForms
 
             // TODO raise scroll events
             if (_hScrollBar.Value != _gridProjector.X || _vScrollBar.Value != _gridProjector.Y)
-                _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation), true);
+                _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation), true);
             _hScrollBar.Value = _gridProjector.X;
             _vScrollBar.Value = _gridProjector.Y;
         }

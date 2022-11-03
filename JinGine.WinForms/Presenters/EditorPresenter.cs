@@ -23,7 +23,7 @@ internal class EditorPresenter
         view.CaretPointChanged += OnCaretPointChanged;
 
         _view.SetLines(_reader.ReadLines());
-        _view.SetProjector(new GridProjector(CharsGrid.Create(FontDescriptor.DefaultFixed)));
+        _view.SetProjector(GridProjector.Create(FontDescriptor.DefaultFixed));
         SetCaretPositionInView();
     }
 
