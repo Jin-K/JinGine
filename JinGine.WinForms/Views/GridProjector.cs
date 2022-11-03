@@ -1,34 +1,39 @@
 ﻿namespace JinGine.WinForms.Views;
 
-internal class GridProjector
+public class GridProjector
 {
+    private readonly CharsGrid _grid;
     private Rectangle _bounds;
-    private CharsGrid _grid;
 
-    internal ref CharsGrid Grid => ref _grid;
+    internal Size CellSize { get; }
+
     internal int X { get; private set; }
     internal int Y { get; private set; }
 
-    internal Size CellSize => new(Grid.CellWidth, Grid.CellHeight);
+    internal GridProjector(CharsGrid grid)
+    {
+        _grid = grid;
+        CellSize = new Size(grid.CellWidth, grid.CellHeight);
+    }
 
     internal void EnsureProjection(Point gridLoc)
     {
         var screenRect = ProjectToScreenRectangle(gridLoc);
         if (_bounds.Contains(screenRect)) return;
 
-        var deltaTop = RoundedUpDivision(_bounds.Top - screenRect.Top, Grid.CellHeight);
+        var deltaTop = RoundedUpDivision(_bounds.Top - screenRect.Top, _grid.CellHeight);
         if (deltaTop > 0) Y -= deltaTop;
-        var deltaBottom = RoundedUpDivision(screenRect.Bottom - _bounds.Bottom, Grid.CellHeight);
+        var deltaBottom = RoundedUpDivision(screenRect.Bottom - _bounds.Bottom, _grid.CellHeight);
         if (deltaBottom > 0) Y += deltaBottom;
-        var deltaLeft = RoundedUpDivision(_bounds.Left - Grid.XMargin - screenRect.Left, Grid.CellWidth);
+        var deltaLeft = RoundedUpDivision(_bounds.Left - _grid.XMargin - screenRect.Left, _grid.CellWidth);
         if (deltaLeft > 0) X -= deltaLeft;
-        var deltaRight = RoundedUpDivision(screenRect.Right - (_bounds.Right - Grid.XMargin), Grid.CellWidth);
+        var deltaRight = RoundedUpDivision(screenRect.Right - (_bounds.Right - _grid.XMargin), _grid.CellWidth);
         if (deltaRight > 0) X += deltaRight;
     }
 
     internal Point GetGridLocationFromProjection(Point screenLoc) // TODO UnprojectFromPixels ?
     {
-        var gridLocation = Grid.GetGridCellLocation(screenLoc.X, screenLoc.Y);
+        var gridLocation = _grid.GetGridCellLocation(screenLoc.X, screenLoc.Y);
         ApplyOffsets(ref gridLocation);
         return gridLocation;
     }
@@ -36,20 +41,20 @@ internal class GridProjector
     internal Point ProjectToScreenLocation(Point gridLoc) // TODO ProjectToPixels ?
     {
         RemoveOffsets(ref gridLoc);
-        return Grid.GetScreenCellRectangle(gridLoc).Location;
+        return _grid.GetScreenCellRectangle(gridLoc).Location;
     }
 
     internal Rectangle ProjectToScreenRectangle(Point gridLoc1, Point gridLoc2)
     {
         RemoveOffsets(ref gridLoc1);
         RemoveOffsets(ref gridLoc2);
-        return Rectangle.Union(Grid.GetScreenCellRectangle(gridLoc1), Grid.GetScreenCellRectangle(gridLoc2));
+        return Rectangle.Union(_grid.GetScreenCellRectangle(gridLoc1), _grid.GetScreenCellRectangle(gridLoc2));
     }
 
     internal Rectangle ProjectToScreenRectangle(Point gridLoc)
     {
         RemoveOffsets(ref gridLoc);
-        return Grid.GetScreenCellRectangle(gridLoc);
+        return _grid.GetScreenCellRectangle(gridLoc);
     }
 
     internal void SetBounds(Rectangle bounds) => _bounds = bounds;

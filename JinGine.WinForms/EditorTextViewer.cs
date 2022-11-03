@@ -5,27 +5,25 @@ namespace JinGine.WinForms
     public partial class EditorTextViewer : UserControl
     {
         private const TextFormatFlags TextFFlags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
-        private readonly GridProjector _gridProjector;
-        private readonly GridSelector _selector;
+        
         private readonly Win32Caret _caret;
+        private GridProjector? _gridProjector;
+        private GridSelector? _selector;
         private Point _caretGridLocation;
         private string[] _lines;
 
-        public event EventHandler<char> KeyPressed;
-        public event EventHandler<Point> CaretPointChanged;
+        public event EventHandler<char>? KeyPressed;
+        public event EventHandler<Point>? CaretPointChanged;
 
         public EditorTextViewer()
         {
             InitializeComponent();
 
-            _gridProjector = new GridProjector();
-            _selector = new GridSelector(this, _gridProjector);
             _caret = new Win32Caret(this);
+            _gridProjector = null;
+            _selector = null;
             _caretGridLocation = Point.Empty;
             _lines = Array.Empty<string>();
-
-            KeyPressed = delegate { };
-            CaretPointChanged = delegate { };
             
             base.DoubleBuffered = true;
             
@@ -37,14 +35,8 @@ namespace JinGine.WinForms
         {
             if (location == _caretGridLocation) return;
             _caretGridLocation = location;
-            CaretPointChanged(this, location);
-        }
-        
-        internal void SetGrid(CharsGrid grid)
-        {
-            _gridProjector.Grid = grid;
-            _caret.Height = grid.CellHeight;
-            _caret.Width = grid.CellWidth;
+            if (CaretPointChanged is not null)
+                CaretPointChanged(this, location);
         }
         
         internal void SetLines(string[] lines)
@@ -53,9 +45,19 @@ namespace JinGine.WinForms
             _lines = lines;
             Invalidate();
         }
-        
+
+        internal void SetProjector(GridProjector projector)
+        {
+            _gridProjector = projector;
+            _selector = new GridSelector(this, projector);
+            _caret.Height = projector.CellSize.Height;
+            _caret.Width = projector.CellSize.Width;
+        }
+
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
+            if (_gridProjector is null) return;
+
             var gridLocation = _gridProjector.GetGridLocationFromProjection(e.Location);
             SetCaretGridLocation(gridLocation);
             var caretLocation = _gridProjector.ProjectToScreenLocation(gridLocation);
@@ -65,6 +67,8 @@ namespace JinGine.WinForms
         
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
         {
+            if (_gridProjector is null) return;
+
             _gridProjector.SetX(e.NewValue);
             _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
             Invalidate();
@@ -72,6 +76,8 @@ namespace JinGine.WinForms
         
         private void OnVScrollBarScroll(object? sender, ScrollEventArgs e)
         {
+            if (_gridProjector is null) return;
+
             _gridProjector.SetY(e.NewValue);
             _caret.SetLocation(_gridProjector.ProjectToScreenLocation(_caretGridLocation));
             Invalidate();
@@ -80,6 +86,8 @@ namespace JinGine.WinForms
         // TODO still need to handle Home, End, Delete, PageUp, PageDown, Ctrl + A, Ctrl + C, Ctrl + X, Ctrl + V, Ctrl + Z, Ctrl + Y, etc.
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
+            if (_gridProjector is null || _selector is null) return;
+
             // TODO all this logic could go to the presenter ??
             var nCGridLoc = _caretGridLocation;
             switch (e.KeyCode)
@@ -132,13 +140,14 @@ namespace JinGine.WinForms
         
         private void OnKeyPress(object? sender, KeyPressEventArgs e)
         {
-            KeyPressed(this, e.KeyChar);
+            if (KeyPressed is not null)
+                KeyPressed(this, e.KeyChar);
             e.Handled = true;
         }
 
         private void OnSizeChanged(object? sender, EventArgs e)
         {
-            _gridProjector.SetBounds(ClientRectangle with
+            _gridProjector?.SetBounds(ClientRectangle with
             {
                 Width = ClientRectangle.Width - _vScrollBar.Width,
                 Height = ClientRectangle.Height - _hScrollBar.Height
@@ -148,6 +157,8 @@ namespace JinGine.WinForms
         
         private void OnPaint(object? sender, PaintEventArgs e)
         {
+            if (_gridProjector is null || _gridProjector.CellSize == Size.Empty || _selector is null) return;
+
             var textBackgroundBrush = new SolidBrush(Color.White);
             // TODO all this visible and max things can be improved
             var maxVisibleColumns = (Width / _gridProjector.CellSize.Width).Crop(1, int.MaxValue);
@@ -180,15 +191,15 @@ namespace JinGine.WinForms
             switch (_selector.State)
             {
                 case SelectionState.Selecting:
-                {
-                    e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.BlueViolet)), _selector.Selection);
-                    break;
-                }
+                    {
+                        e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.BlueViolet)), _selector.Selection);
+                        break;
+                    }
                 case SelectionState.Selected:
-                {
-                    e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.YellowGreen)), _selector.Selection);
-                    break;
-                }
+                    {
+                        e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.YellowGreen)), _selector.Selection);
+                        break;
+                    }
                 case SelectionState.Unselected:
                 default:
                     break;
@@ -197,6 +208,8 @@ namespace JinGine.WinForms
 
         private void ScrollToCaretPoint()
         {
+            if (_gridProjector is null) return;
+
             _gridProjector.EnsureProjection(_caretGridLocation);
 
             // TODO raise scroll events

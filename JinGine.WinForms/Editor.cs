@@ -33,7 +33,8 @@ public partial class Editor : UserControl, IEditorView
         _editorTextViewer.SetCaretGridLocation(new Point(column - 1, line - 1));
     }
 
-    public void SetCharsGrid(CharsGrid charsGrid) => _editorTextViewer.SetGrid(charsGrid);
-
-    public void SetFont(Font font) => _editorTextViewer.Font = font;
+    public void SetProjector(GridProjector projector)
+    {
+        _editorTextViewer.SetProjector(projector);
+    }
 }
