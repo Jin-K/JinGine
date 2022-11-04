@@ -23,19 +23,13 @@ internal class Win32Caret
         userControl.Paint += OnPaint;
     }
 
-    internal void SetLocation(Point location, bool force = false)
+    internal void SetLocation(Point location)
     {
-        //if (location != _location)
-        //{
-        //    Debug.WriteLine(nameof(SetLocation));
-        //    Debug.Indent();
-        //    Debug.WriteLine($"Old Value: {_location}");
-        //    Debug.WriteLine($"New Value: {location}");
-        //    Debug.Unindent();
-        //}
         _location = location;
-        if (force is false) return;
+    }
 
+    internal void Show()
+    {
         if (_exists is false)
         {
             CreateCaret();
@@ -46,8 +40,6 @@ internal class Win32Caret
         {
             SetCaretPos();
         }
-
-        _userControl.Focus();
     }
 
     private void CreateCaret()

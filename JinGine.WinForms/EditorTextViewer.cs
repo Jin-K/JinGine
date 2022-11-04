@@ -147,12 +147,24 @@ namespace JinGine.WinForms
 
         private void OnSizeChanged(object? sender, EventArgs e)
         {
-            _gridProjector?.SetBounds(ClientRectangle with
+            if (_gridProjector is null) return;
+
+            _gridProjector.SetBounds(ClientRectangle with
             {
                 Width = ClientRectangle.Width - _vScrollBar.Width,
                 Height = ClientRectangle.Height - _hScrollBar.Height
             });
-            ScrollToCaretPoint();
+
+            _gridProjector.EnsureProjection(_caretGridLocation);
+
+            // TODO raise scroll events instead
+            if (_hScrollBar.Value != _gridProjector.X || _vScrollBar.Value != _gridProjector.Y)
+            {
+                _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
+                _caret.Show();
+            }
+            _hScrollBar.Value = _gridProjector.X;
+            _vScrollBar.Value = _gridProjector.Y;
         }
         
         private void OnPaint(object? sender, PaintEventArgs e)
@@ -190,33 +202,20 @@ namespace JinGine.WinForms
             // TODO integrate this in the loop above (make a grid selection per line ?)
             switch (_selector.State)
             {
-                case SelectionState.Selecting:
+                case GridSelector.Status.Selecting:
                     {
                         e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.BlueViolet)), _selector.Selection);
                         break;
                     }
-                case SelectionState.Selected:
+                case GridSelector.Status.Selected:
                     {
                         e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.YellowGreen)), _selector.Selection);
                         break;
                     }
-                case SelectionState.Unselected:
+                case GridSelector.Status.Unselected:
                 default:
                     break;
             }
-        }
-
-        private void ScrollToCaretPoint()
-        {
-            if (_gridProjector is null) return;
-
-            _gridProjector.EnsureProjection(_caretGridLocation);
-
-            // TODO raise scroll events
-            if (_hScrollBar.Value != _gridProjector.X || _vScrollBar.Value != _gridProjector.Y)
-                _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation), true);
-            _hScrollBar.Value = _gridProjector.X;
-            _vScrollBar.Value = _gridProjector.Y;
         }
     }
 }

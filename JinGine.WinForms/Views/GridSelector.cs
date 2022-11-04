@@ -16,14 +16,14 @@ internal class GridSelector
         _gridStartLoc = Point.Empty;
         _gridEndLoc = Point.Empty;
         _mouseDownLoc = null;
-        State = SelectionState.Unselected;
+        State = Status.Unselected;
 
         control.MouseDown += OnMouseDown;
         control.MouseMove += OnMouseMove;
         control.MouseUp += OnMouseUp;
     }
 
-    internal SelectionState State { get; private set; }
+    internal Status State { get; private set; }
 
     internal Rectangle Selection => _projector.GridLocationsToScreenRect(_gridStartLoc, _gridEndLoc);
 
@@ -31,22 +31,22 @@ internal class GridSelector
     {
         _gridStartLoc = _gridEndLoc = _projector.ScreenLocationToGridLocation(startPoint);
         _mouseDownLoc = null;
-        State = SelectionState.Selecting;
+        State = Status.Selecting;
     }
 
     internal void EndSelect(Point endPoint)
     {
         _gridEndLoc = _projector.ScreenLocationToGridLocation(endPoint);
         _mouseDownLoc = null;
-        State = SelectionState.Selected;
+        State = Status.Selected;
     }
 
     private void OnMouseDown(object? sender, MouseEventArgs e)
     {
         _mouseDownLoc = e.Location;
         _gridStartLoc = _projector.ScreenLocationToGridLocation(e.Location);
-        if (State is SelectionState.Unselected) return;
-        State = SelectionState.Unselected;
+        if (State is Status.Unselected) return;
+        State = Status.Unselected;
         _control.Invalidate();
     }
 
@@ -54,15 +54,22 @@ internal class GridSelector
     {
         if (_mouseDownLoc is null) return;
         _gridEndLoc = _projector.ScreenLocationToGridLocation(e.Location);
-        State = SelectionState.Selecting;
+        State = Status.Selecting;
         _control.Invalidate();
     }
 
     private void OnMouseUp(object? sender, MouseEventArgs e)
     {
         _mouseDownLoc = null;
-        if (State is not SelectionState.Selecting) return;
-        State = SelectionState.Selected;
+        if (State is not Status.Selecting) return;
+        State = Status.Selected;
         _control.Invalidate();
+    }
+
+    internal enum Status
+    {
+        Unselected,
+        Selecting,
+        Selected,
     }
 }
