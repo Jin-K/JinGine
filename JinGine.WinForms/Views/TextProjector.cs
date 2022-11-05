@@ -1,6 +1,4 @@
-﻿using LegacyFwk;
-
-namespace JinGine.WinForms.Views;
+﻿namespace JinGine.WinForms.Views;
 
 public class TextProjector
 {
@@ -10,10 +8,12 @@ public class TextProjector
     internal Size CellSize => _grid.CellSize;
     internal int X { get; private set; }
     internal int Y { get; private set; }
+    internal int MaxVisibleColumns { get; private set; }
+    internal int MaxVisibleLines { get; private set; }
 
     private TextProjector(Grid grid) => _grid = grid;
 
-    internal static TextProjector Create(FontDescriptor fDescriptor) =>
+    internal static TextProjector Create(LegacyFwk.FontDescriptor fDescriptor) =>
         new(new Grid(new Size(fDescriptor.Width, fDescriptor.Height), fDescriptor.LeftMargin));
 
     internal void EnsureProjection(Point gridLoc)
@@ -34,6 +34,12 @@ public class TextProjector
         return new Point(x, y);
     }
 
+    internal Rectangle GridLocationToScreenRect(Point gridLoc)
+    {
+        var screenLoc = GridLocationToScreen(gridLoc);
+        return new Rectangle(screenLoc, CellSize);
+    }
+
     internal Rectangle GridLocationsToScreenRect(Point gridLoc1, Point gridLoc2)
     {
         var rect1 = GridLocationToScreenRect(gridLoc1);
@@ -41,7 +47,12 @@ public class TextProjector
         return Rectangle.Union(rect1, rect2);
     }
 
-    internal void SetBounds(Rectangle bounds) => _bounds = bounds;
+    internal void SetBounds(Rectangle bounds)
+    {
+        _bounds = bounds;
+        MaxVisibleColumns = (_bounds.Width + CellSize.Width - 1 - _grid.XMargin) / CellSize.Width;
+        MaxVisibleLines = (_bounds.Height + CellSize.Height - 1) / CellSize.Height;
+    }
 
     internal void SetX(int x)
     {
@@ -60,12 +71,6 @@ public class TextProjector
         var x = (screenLoc.X - _grid.XMargin) / CellSize.Width + X;
         var y = screenLoc.Y / CellSize.Height + Y;
         return new Point(x, y);
-    }
-
-    private Rectangle GridLocationToScreenRect(Point gridLoc)
-    {
-        var screenLoc = GridLocationToScreen(gridLoc);
-        return new Rectangle(screenLoc, CellSize);
     }
 
     private readonly record struct Grid(Size CellSize, int XMargin);

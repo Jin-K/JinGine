@@ -7,7 +7,7 @@ namespace JinGine.WinForms
         private const TextFormatFlags TextFFlags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
         
         private readonly Win32Caret _caret;
-        private TextProjector? _gridProjector;
+        private TextProjector? _textProjector;
         private GridSelector? _selector;
         private string[] _lines;
 
@@ -21,10 +21,10 @@ namespace JinGine.WinForms
             InitializeComponent();
 
             _caret = new Win32Caret(this);
-            _gridProjector = null;
+            _textProjector = null;
             _selector = null;
-            CaretLocation = Point.Empty;
             _lines = Array.Empty<string>();
+            CaretLocation = Point.Empty;
             
             base.DoubleBuffered = true;
             
@@ -41,15 +41,15 @@ namespace JinGine.WinForms
 
         internal void SetProjector(TextProjector projector)
         {
-            _gridProjector = projector;
+            _textProjector = projector;
             _selector = new GridSelector(this, projector);
             _caret.Size = projector.CellSize;
         }
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
-            if (_gridProjector is null) return;
-            var caretLocation = _gridProjector.ScreenToGridLocation(e.Location);
+            if (_textProjector is null) return;
+            var caretLocation = _textProjector.ScreenToGridLocation(e.Location);
             CaretLocation = caretLocation;
             CaretLocationChanged?.Invoke(this, caretLocation);
             SetWin32CaretPos(caretLocation);
@@ -57,26 +57,26 @@ namespace JinGine.WinForms
         
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
         {
-            if (_gridProjector is null) return;
+            if (_textProjector is null) return;
 
-            _gridProjector.SetX(e.NewValue);
-            _caret.Position = _gridProjector.GridLocationToScreen(CaretLocation);
+            _textProjector.SetX(e.NewValue);
+            _caret.Position = _textProjector.GridLocationToScreen(CaretLocation);
             Invalidate();
         }
         
         private void OnVScrollBarScroll(object? sender, ScrollEventArgs e)
         {
-            if (_gridProjector is null) return;
+            if (_textProjector is null) return;
 
-            _gridProjector.SetY(e.NewValue);
-            _caret.Position = _gridProjector.GridLocationToScreen(CaretLocation);
+            _textProjector.SetY(e.NewValue);
+            _caret.Position = _textProjector.GridLocationToScreen(CaretLocation);
             Invalidate();
         }
         
         // TODO still need to handle Home, End, Delete, PageUp, PageDown, Ctrl + A, Ctrl + C, Ctrl + X, Ctrl + V, Ctrl + Z, Ctrl + Y, etc.
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
-            if (_gridProjector is null || _selector is null) return;
+            if (_textProjector is null || _selector is null) return;
 
             // TODO all this logic could go to the presenter ??
             var nCGridLoc = CaretLocation;
@@ -119,8 +119,8 @@ namespace JinGine.WinForms
             if ((ModifierKeys & Keys.Shift) is Keys.Shift)
             {
                 // TODO fix
-                _selector.StartSelect(_gridProjector.GridLocationToScreen(CaretLocation));
-                _selector.EndSelect(_gridProjector.GridLocationToScreen(nCGridLoc));
+                _selector.StartSelect(_textProjector.GridLocationToScreen(CaretLocation));
+                _selector.EndSelect(_textProjector.GridLocationToScreen(nCGridLoc));
             }
 
             CaretLocation = nCGridLoc;
@@ -136,51 +136,41 @@ namespace JinGine.WinForms
 
         private void OnSizeChanged(object? sender, EventArgs e)
         {
-            if (_gridProjector is null) return;
+            if (_textProjector is null) return;
 
-            _gridProjector.SetBounds(ClientRectangle with
-            {
-                Width = ClientRectangle.Width - _vScrollBar.Width,
-                Height = ClientRectangle.Height - _hScrollBar.Height
-            });
+            var textProjBounds = ClientRectangle;
+            textProjBounds.Width -= _vScrollBar.Width;
+            textProjBounds.Height -= _hScrollBar.Height;
+            _textProjector.SetBounds(textProjBounds);
 
-            _gridProjector.EnsureProjection(CaretLocation);
+            _textProjector.EnsureProjection(CaretLocation);
             
-            if (_hScrollBar.Value != _gridProjector.X)
-                _hScrollBar.RaiseMouseWheel((_hScrollBar.Value - _gridProjector.X) * SystemInformation.MouseWheelScrollDelta);
+            if (_hScrollBar.Value != _textProjector.X)
+                _hScrollBar.RaiseMouseWheel((_hScrollBar.Value - _textProjector.X) * SystemInformation.MouseWheelScrollDelta);
 
-            if (_vScrollBar.Value != _gridProjector.Y)
-                _vScrollBar.RaiseMouseWheel((_vScrollBar.Value - _gridProjector.Y) * SystemInformation.MouseWheelScrollDelta);
+            if (_vScrollBar.Value != _textProjector.Y)
+                _vScrollBar.RaiseMouseWheel((_vScrollBar.Value - _textProjector.Y) * SystemInformation.MouseWheelScrollDelta);
         }
         
         private void OnPaint(object? sender, PaintEventArgs e)
         {
-            if (_gridProjector is null || _gridProjector.CellSize == Size.Empty || _selector is null) return;
+            if (_textProjector is null || _textProjector.CellSize == Size.Empty || _selector is null) return;
 
             var textBackgroundBrush = new SolidBrush(Color.White);
-            // TODO all this visible and max things can be improved
-            var maxVisibleColumns = (Width / _gridProjector.CellSize.Width).Crop(1, int.MaxValue);
-            var maxScreenY = ClientRectangle.Bottom - _hScrollBar.Height - 1;
-            var visibleGridLines = _lines.Skip(_gridProjector.Y)
-                .Select((l, i) => (i + _gridProjector.Y, l));
-            var firstVisGridLineX = _gridProjector.X;
-
-            foreach (var (i, line) in visibleGridLines)
+            for (var i = _textProjector.Y; i < _lines.Length; i++)
             {
-                var visibleColumns = Math.Min(line.Length - firstVisGridLineX, maxVisibleColumns);
-                if (visibleColumns <= 0) continue;
-
-                var lastVisGridLineX = visibleColumns - 1 + firstVisGridLineX;
-                var textRect = _gridProjector.GridLocationsToScreenRect(
-                    new Point(firstVisGridLineX, i),
-                    new Point(lastVisGridLineX, i));
-                if (textRect.Y > maxScreenY) break;
-
+                var visibleCols = Math.Min(_lines[i].Length - _textProjector.X, _textProjector.MaxVisibleColumns);
+                if (visibleCols <= 0) continue;
+                
+                var firstCharLoc = new Point(_textProjector.X, i);
+                var lastCharLoc = new Point(_textProjector.X + visibleCols - 1, i);
+                var textRect = _textProjector.GridLocationsToScreenRect(firstCharLoc, lastCharLoc);
                 var bgRect = textRect with { X = 0 };
+
                 bgRect.Inflate(textRect.Left, 0);
                 e.Graphics.FillRectangle(textBackgroundBrush, bgRect);
-                
-                var text = line.AsSpan(_gridProjector.X, visibleColumns);
+
+                var text = _lines[i].AsSpan(_textProjector.X, visibleCols);
                 TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFFlags);
             }
 
@@ -205,8 +195,8 @@ namespace JinGine.WinForms
 
         private void SetWin32CaretPos(Point location)
         {
-            if (_gridProjector is null) return;
-            _caret.Position = _gridProjector.GridLocationToScreen(location);
+            if (_textProjector is null) return;
+            _caret.Position = _textProjector.GridLocationToScreen(location);
             Invalidate();
         }
     }

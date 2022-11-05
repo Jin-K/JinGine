@@ -43,7 +43,7 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
             var index = text.IndexOfAny(LineTerminators, lineStart);
             if (index >= 0)
             {
-                var content = ToPrintable(text, lineStart, index);
+                var content = ToPrintable(text, lineStart, index - lineStart);
                 res.Add(new LineSegment(content, lineStart));
                 lineStart = index + 1;
                 if (text[index] is '\r' && index + 1 < text.Length && text[index + 1] is '\n')
@@ -51,7 +51,7 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
             }
             else
             {
-                var content = ToPrintable(text, lineStart, text.Length - 1);
+                var content = ToPrintable(text, lineStart, text.Length - lineStart);
                 res.Add(new LineSegment(content, lineStart));
                 break;
             }
@@ -64,9 +64,8 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private static string ToPrintable(ReadOnlySpan<char> source, int startIndex, int endIndex)
+    private static string ToPrintable(ReadOnlySpan<char> source, int startIndex, int length)
     {
-        var length = endIndex - startIndex;
         Span<char> chars = stackalloc char[length];
         for (var i = 0; i < length; i++)
         {
