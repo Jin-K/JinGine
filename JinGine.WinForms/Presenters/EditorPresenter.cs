@@ -20,7 +20,7 @@ internal class EditorPresenter
         _reader = new Editor2DTextReader(_model);
 
         view.KeyPressed += OnKeyPressed;
-        view.CaretPointChanged += OnCaretPointChanged;
+        view.CaretLocationChanged += OnCaretPointChanged;
 
         _view.SetLines(_reader.ReadLines());
         _view.SetProjector(GridProjector.Create(FontDescriptor.DefaultFixed));

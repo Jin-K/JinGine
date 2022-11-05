@@ -29,14 +29,14 @@ internal class GridSelector
 
     internal void StartSelect(Point startPoint)
     {
-        _gridStartLoc = _gridEndLoc = _projector.ScreenLocationToGridLocation(startPoint);
+        _gridStartLoc = _gridEndLoc = _projector.ScreenToGridLocation(startPoint);
         _mouseDownLoc = null;
         State = Status.Selecting;
     }
 
     internal void EndSelect(Point endPoint)
     {
-        _gridEndLoc = _projector.ScreenLocationToGridLocation(endPoint);
+        _gridEndLoc = _projector.ScreenToGridLocation(endPoint);
         _mouseDownLoc = null;
         State = Status.Selected;
     }
@@ -44,7 +44,7 @@ internal class GridSelector
     private void OnMouseDown(object? sender, MouseEventArgs e)
     {
         _mouseDownLoc = e.Location;
-        _gridStartLoc = _projector.ScreenLocationToGridLocation(e.Location);
+        _gridStartLoc = _projector.ScreenToGridLocation(e.Location);
         if (State is Status.Unselected) return;
         State = Status.Unselected;
         _control.Invalidate();
@@ -53,7 +53,7 @@ internal class GridSelector
     private void OnMouseMove(object? sender, MouseEventArgs e)
     {
         if (_mouseDownLoc is null) return;
-        _gridEndLoc = _projector.ScreenLocationToGridLocation(e.Location);
+        _gridEndLoc = _projector.ScreenToGridLocation(e.Location);
         State = Status.Selecting;
         _control.Invalidate();
     }

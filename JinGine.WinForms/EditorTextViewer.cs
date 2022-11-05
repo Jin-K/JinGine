@@ -9,11 +9,12 @@ namespace JinGine.WinForms
         private readonly Win32Caret _caret;
         private GridProjector? _gridProjector;
         private GridSelector? _selector;
-        private Point _caretGridLocation;
         private string[] _lines;
 
+        internal Point CaretLocation { get; set; }
+
         public event EventHandler<char>? KeyPressed;
-        public event EventHandler<Point>? CaretPointChanged;
+        public event EventHandler<Point>? CaretLocationChanged;
 
         public EditorTextViewer()
         {
@@ -22,7 +23,7 @@ namespace JinGine.WinForms
             _caret = new Win32Caret(this);
             _gridProjector = null;
             _selector = null;
-            _caretGridLocation = Point.Empty;
+            CaretLocation = Point.Empty;
             _lines = Array.Empty<string>();
             
             base.DoubleBuffered = true;
@@ -30,15 +31,7 @@ namespace JinGine.WinForms
             this.InitArrowKeyDownFiring();
             this.InitMouseWheelScrollDelegation(_vScrollBar);
         }
-        
-        internal void SetCaretGridLocation(Point location)
-        {
-            if (location == _caretGridLocation) return;
-            _caretGridLocation = location;
-            if (CaretPointChanged is not null)
-                CaretPointChanged(this, location);
-        }
-        
+
         internal void SetLines(string[] lines)
         {
             if (_lines.SequenceEqual(lines)) return;
@@ -50,19 +43,16 @@ namespace JinGine.WinForms
         {
             _gridProjector = projector;
             _selector = new GridSelector(this, projector);
-            _caret.Height = projector.CellSize.Height;
-            _caret.Width = projector.CellSize.Width;
+            _caret.Size = projector.CellSize;
         }
 
         private void OnMouseClick(object? sender, MouseEventArgs e)
         {
             if (_gridProjector is null) return;
-
-            var gridLocation = _gridProjector.ScreenLocationToGridLocation(e.Location);
-            SetCaretGridLocation(gridLocation);
-            var caretLocation = _gridProjector.GridLocationToScreenLocation(gridLocation);
-            _caret.SetLocation(caretLocation);
-            Invalidate();
+            var caretLocation = _gridProjector.ScreenToGridLocation(e.Location);
+            CaretLocation = caretLocation;
+            CaretLocationChanged?.Invoke(this, caretLocation);
+            SetWin32CaretPos(caretLocation);
         }
         
         private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
@@ -70,7 +60,7 @@ namespace JinGine.WinForms
             if (_gridProjector is null) return;
 
             _gridProjector.SetX(e.NewValue);
-            _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
+            _caret.Position = _gridProjector.GridLocationToScreen(CaretLocation);
             Invalidate();
         }
         
@@ -79,7 +69,7 @@ namespace JinGine.WinForms
             if (_gridProjector is null) return;
 
             _gridProjector.SetY(e.NewValue);
-            _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
+            _caret.Position = _gridProjector.GridLocationToScreen(CaretLocation);
             Invalidate();
         }
         
@@ -89,7 +79,7 @@ namespace JinGine.WinForms
             if (_gridProjector is null || _selector is null) return;
 
             // TODO all this logic could go to the presenter ??
-            var nCGridLoc = _caretGridLocation;
+            var nCGridLoc = CaretLocation;
             switch (e.KeyCode)
             {
                 case Keys.Left:
@@ -124,24 +114,23 @@ namespace JinGine.WinForms
                     break;
             }
 
-            if (nCGridLoc == _caretGridLocation) return;
+            if (nCGridLoc == CaretLocation) return;
 
             if ((ModifierKeys & Keys.Shift) is Keys.Shift)
             {
                 // TODO fix
-                _selector.StartSelect(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
-                _selector.EndSelect(_gridProjector.GridLocationToScreenLocation(nCGridLoc));
+                _selector.StartSelect(_gridProjector.GridLocationToScreen(CaretLocation));
+                _selector.EndSelect(_gridProjector.GridLocationToScreen(nCGridLoc));
             }
 
-            SetCaretGridLocation(nCGridLoc);
-            _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(nCGridLoc));
-            Invalidate();
+            CaretLocation = nCGridLoc;
+            CaretLocationChanged?.Invoke(this, nCGridLoc);
+            SetWin32CaretPos(nCGridLoc);
         }
         
         private void OnKeyPress(object? sender, KeyPressEventArgs e)
         {
-            if (KeyPressed is not null)
-                KeyPressed(this, e.KeyChar);
+            KeyPressed?.Invoke(this, e.KeyChar);
             e.Handled = true;
         }
 
@@ -155,12 +144,12 @@ namespace JinGine.WinForms
                 Height = ClientRectangle.Height - _hScrollBar.Height
             });
 
-            _gridProjector.EnsureProjection(_caretGridLocation);
+            _gridProjector.EnsureProjection(CaretLocation);
 
             // TODO raise scroll events instead
             if (_hScrollBar.Value != _gridProjector.X || _vScrollBar.Value != _gridProjector.Y)
             {
-                _caret.SetLocation(_gridProjector.GridLocationToScreenLocation(_caretGridLocation));
+                _caret.Position = _gridProjector.GridLocationToScreen(CaretLocation);
                 _caret.Show();
             }
             _hScrollBar.Value = _gridProjector.X;
@@ -216,6 +205,13 @@ namespace JinGine.WinForms
                 default:
                     break;
             }
+        }
+
+        private void SetWin32CaretPos(Point location)
+        {
+            if (_gridProjector is null) return;
+            _caret.Position = _gridProjector.GridLocationToScreen(location);
+            Invalidate();
         }
     }
 }

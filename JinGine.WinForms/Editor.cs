@@ -11,10 +11,10 @@ public partial class Editor : UserControl, IEditorView
     private int Column { set => _columnLabel.Text = Convert.ToString(value); }
     private int Offset { set => _offsetLabel.Text = Convert.ToString(value); }
 
-    public event EventHandler<Point> CaretPointChanged
+    public event EventHandler<Point> CaretLocationChanged
     {
-        add => _editorTextViewer.CaretPointChanged += value;
-        remove => _editorTextViewer.CaretPointChanged -= value;
+        add => _editorTextViewer.CaretLocationChanged += value;
+        remove => _editorTextViewer.CaretLocationChanged -= value;
     }
 
     public event EventHandler<char> KeyPressed
@@ -30,7 +30,7 @@ public partial class Editor : UserControl, IEditorView
     public void SetCaret(int line, int column, int offset)
     {
         (Line, Column, Offset) = (line, column, offset);
-        _editorTextViewer.SetCaretGridLocation(new Point(column - 1, line - 1));
+        _editorTextViewer.CaretLocation = new Point(column - 1, line - 1);
     }
 
     public void SetProjector(GridProjector projector)

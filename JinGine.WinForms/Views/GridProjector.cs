@@ -19,7 +19,7 @@ public class GridProjector
     internal void EnsureProjection(Point gridLoc)
     {
         var cellRect = GridLocationToScreenRect(gridLoc);
-        if (_bounds.Contains(cellRect)) return;
+        if (_bounds.Contains(cellRect)) return; // TODO do we really need to check ?
         
         Y -= Math.Max(0, (_bounds.Top - cellRect.Top + CellSize.Height - 1) / CellSize.Height);
         Y += Math.Max(0, (cellRect.Bottom - _bounds.Bottom + CellSize.Height - 1) / CellSize.Height);
@@ -27,7 +27,7 @@ public class GridProjector
         X += Math.Max(0, (cellRect.Right - (_bounds.Right - _grid.XMargin) + CellSize.Width - 1) / CellSize.Width);
     }
 
-    internal Point GridLocationToScreenLocation(Point gridLoc)
+    internal Point GridLocationToScreen(Point gridLoc)
     {
         var x = (gridLoc.X - X) * CellSize.Width + _grid.XMargin;
         var y = (gridLoc.Y - Y) * CellSize.Height;
@@ -55,7 +55,7 @@ public class GridProjector
         Y = y;
     }
 
-    internal Point ScreenLocationToGridLocation(Point screenLoc)
+    internal Point ScreenToGridLocation(Point screenLoc)
     {
         var x = (screenLoc.X - _grid.XMargin) / CellSize.Width + X;
         var y = screenLoc.Y / CellSize.Height + Y;
@@ -64,7 +64,7 @@ public class GridProjector
 
     private Rectangle GridLocationToScreenRect(Point gridLoc)
     {
-        var screenLoc = GridLocationToScreenLocation(gridLoc);
+        var screenLoc = GridLocationToScreen(gridLoc);
         return new Rectangle(screenLoc, CellSize);
     }
 

@@ -5,27 +5,19 @@ namespace JinGine.WinForms.Views;
 internal class Win32Caret
 {
     private readonly UserControl _userControl;
-    private Point _location;
     private bool _exists;
 
-    internal int Width { get; set; }
-
-    internal int Height { get; set; }
+    internal Point Position { get; set; }
+    internal Size Size { get; set; }
 
     internal Win32Caret(UserControl userControl)
     {
         _userControl = userControl;
-        _location = Point.Empty;
         _exists = false;
 
         userControl.GotFocus += OnGotFocus;
         userControl.LostFocus += OnLostFocus;
         userControl.Paint += OnPaint;
-    }
-
-    internal void SetLocation(Point location)
-    {
-        _location = location;
     }
 
     internal void Show()
@@ -44,7 +36,7 @@ internal class Win32Caret
 
     private void CreateCaret()
     {
-        if (!Succeeded(CreateCaret(_userControl.Handle, IntPtr.Zero, Width, Height)))
+        if (!Succeeded(CreateCaret(_userControl.Handle, IntPtr.Zero, Size.Width, Size.Height)))
             throw new COMException(nameof(CreateCaret), Marshal.GetLastWin32Error());
         _exists = true;
     }
@@ -71,7 +63,7 @@ internal class Win32Caret
 
     private void SetCaretPos()
     {
-        if (!Succeeded(SetCaretPos(_location.X, _location.Y)))
+        if (!Succeeded(SetCaretPos(Position.X, Position.Y)))
             throw new COMException(nameof(SetCaretPos), Marshal.GetLastWin32Error());
     }
 
