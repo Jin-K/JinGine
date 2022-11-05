@@ -7,7 +7,7 @@ namespace JinGine.WinForms
         private const TextFormatFlags TextFFlags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
         
         private readonly Win32Caret _caret;
-        private GridProjector? _gridProjector;
+        private TextProjector? _gridProjector;
         private GridSelector? _selector;
         private string[] _lines;
 
@@ -39,7 +39,7 @@ namespace JinGine.WinForms
             Invalidate();
         }
 
-        internal void SetProjector(GridProjector projector)
+        internal void SetProjector(TextProjector projector)
         {
             _gridProjector = projector;
             _selector = new GridSelector(this, projector);
@@ -180,8 +180,8 @@ namespace JinGine.WinForms
                 bgRect.Inflate(textRect.Left, 0);
                 e.Graphics.FillRectangle(textBackgroundBrush, bgRect);
                 
-                var textSpan = line.AsSpan(_gridProjector.X, visibleColumns);
-                TextRenderer.DrawText(e.Graphics, textSpan, Font, textRect, Color.Black, TextFFlags);
+                var text = line.AsSpan(_gridProjector.X, visibleColumns);
+                TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFFlags);
             }
 
             // TODO integrate this in the loop above (make a grid selection per line ?)

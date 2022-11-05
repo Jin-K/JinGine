@@ -7,5 +7,5 @@ internal interface IEditorView
 
     void SetLines(string[] textLines);
     void SetCaret(int line, int column, int offset);
-    void SetProjector(GridProjector projector);
+    void SetProjector(TextProjector projector);
 }

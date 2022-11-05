@@ -33,7 +33,7 @@ public partial class Editor : UserControl, IEditorView
         _editorTextViewer.CaretLocation = new Point(column - 1, line - 1);
     }
 
-    public void SetProjector(GridProjector projector)
+    public void SetProjector(TextProjector projector)
     {
         _editorTextViewer.SetProjector(projector);
     }

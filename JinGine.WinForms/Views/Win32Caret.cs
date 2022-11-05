@@ -20,20 +20,6 @@ internal class Win32Caret
         userControl.Paint += OnPaint;
     }
 
-    internal void Show()
-    {
-        if (_exists is false)
-        {
-            CreateCaret();
-            SetCaretPos();
-            ShowCaret();
-        }
-        else
-        {
-            SetCaretPos();
-        }
-    }
-
     private void CreateCaret()
     {
         if (!Succeeded(CreateCaret(_userControl.Handle, IntPtr.Zero, Size.Width, Size.Height)))

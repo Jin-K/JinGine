@@ -4,12 +4,12 @@
 internal class GridSelector
 {
     private readonly Control _control;
-    private readonly GridProjector _projector;
+    private readonly TextProjector _projector;
     private Point _gridStartLoc;
     private Point _gridEndLoc;
     private Point? _mouseDownLoc;
 
-    internal GridSelector(Control control, GridProjector projector)
+    internal GridSelector(Control control, TextProjector projector)
     {
         _control = control;
         _projector = projector;

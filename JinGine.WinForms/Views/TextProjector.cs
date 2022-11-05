@@ -2,7 +2,7 @@
 
 namespace JinGine.WinForms.Views;
 
-public class GridProjector
+public class TextProjector
 {
     private readonly Grid _grid;
     private Rectangle _bounds;
@@ -11,9 +11,9 @@ public class GridProjector
     internal int X { get; private set; }
     internal int Y { get; private set; }
 
-    private GridProjector(Grid grid) => _grid = grid;
+    private TextProjector(Grid grid) => _grid = grid;
 
-    internal static GridProjector Create(FontDescriptor fDescriptor) =>
+    internal static TextProjector Create(FontDescriptor fDescriptor) =>
         new(new Grid(new Size(fDescriptor.Width, fDescriptor.Height), fDescriptor.LeftMargin));
 
     internal void EnsureProjection(Point gridLoc)
