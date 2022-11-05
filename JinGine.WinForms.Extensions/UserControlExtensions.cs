@@ -14,26 +14,7 @@ public static class UserControlExtensions
         };
     }
 
-    public static void InitMouseWheelScrollDelegation(this UserControl userControl, VScrollBar vScrollBar)
-    {
+    public static void InitMouseWheelScrollDelegation(this UserControl userControl, VScrollBar vScrollBar) =>
         userControl.MouseWheel += (_, e) =>
-        {
-            var direction = Math.Sign(e.Delta);
-            if (direction is 0) return;
-            
-            // ReSharper disable InconsistentNaming
-            const ushort WM_MOUSEWHEEL = 0x020a;
-            const ushort MK_LBUTTON = 0x0001;
-            // ReSharper restore InconsistentNaming
-
-            var delta = SystemInformation.MouseWheelScrollDelta * SystemInformation.MouseWheelScrollLines;
-            var wParam = (IntPtr)((delta << 16) * Math.Sign(direction) | MK_LBUTTON);
-            var lParam = (IntPtr)((Cursor.Position.Y << 16) | (Cursor.Position.X & 0xffff));
-
-            SendMessage(vScrollBar.Handle, WM_MOUSEWHEEL, wParam, lParam);
-        };
-    }
-
-    [DllImport("user32", SetLastError = true)]
-    private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+            vScrollBar.RaiseMouseWheel(e.Delta * SystemInformation.MouseWheelScrollLines);
 }

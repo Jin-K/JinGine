@@ -145,15 +145,12 @@ namespace JinGine.WinForms
             });
 
             _gridProjector.EnsureProjection(CaretLocation);
+            
+            if (_hScrollBar.Value != _gridProjector.X)
+                _hScrollBar.RaiseMouseWheel((_hScrollBar.Value - _gridProjector.X) * SystemInformation.MouseWheelScrollDelta);
 
-            // TODO raise scroll events instead
-            if (_hScrollBar.Value != _gridProjector.X || _vScrollBar.Value != _gridProjector.Y)
-            {
-                _caret.Position = _gridProjector.GridLocationToScreen(CaretLocation);
-                _caret.Show();
-            }
-            _hScrollBar.Value = _gridProjector.X;
-            _vScrollBar.Value = _gridProjector.Y;
+            if (_vScrollBar.Value != _gridProjector.Y)
+                _vScrollBar.RaiseMouseWheel((_vScrollBar.Value - _gridProjector.Y) * SystemInformation.MouseWheelScrollDelta);
         }
         
         private void OnPaint(object? sender, PaintEventArgs e)
