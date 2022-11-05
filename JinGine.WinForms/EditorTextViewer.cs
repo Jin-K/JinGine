@@ -179,10 +179,9 @@ namespace JinGine.WinForms
                 var bgRect = textRect with { X = 0 };
                 bgRect.Inflate(textRect.Left, 0);
                 e.Graphics.FillRectangle(textBackgroundBrush, bgRect);
-
-                // TODO use ReadOnlySpan<char>
-                var printableLine = line.ToPrintable(_gridProjector.X, visibleColumns);
-                TextRenderer.DrawText(e.Graphics, printableLine, Font, textRect, Color.Black, TextFFlags);
+                
+                var textSpan = line.AsSpan(_gridProjector.X, visibleColumns);
+                TextRenderer.DrawText(e.Graphics, textSpan, Font, textRect, Color.Black, TextFFlags);
             }
 
             // TODO integrate this in the loop above (make a grid selection per line ?)
