@@ -3,9 +3,8 @@
 internal interface IEditorView
 {
     event EventHandler<char> KeyPressed;
-    event EventHandler<Point> CaretLocationChanged;
+    event EventHandler<Point> CaretPointChanged;
 
     void SetLines(string[] textLines);
     void SetCaret(int line, int column, int offset);
-    void SetProjector(TextProjector projector);
 }

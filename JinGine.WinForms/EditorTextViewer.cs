@@ -1,76 +1,32 @@
-﻿using System.Diagnostics;
-using JinGine.WinForms.Views;
+﻿using JinGine.WinForms.Views;
+using static System.Windows.Forms.TextFormatFlags;
 
 namespace JinGine.WinForms;
 
-class CharsGrid
-{
-    internal Rectangle Bounds { get; private set;}
-    internal Size CellSize { get; }
-    internal int MaxVisibleColumns { get; private set; }
-    internal int MaxVisibleLines { get; private set; }
-    internal int XMargin { get; }
-
-    private CharsGrid(Size size, int xMargin)
-    {
-        XMargin = xMargin;
-        CellSize = size;
-    }
-
-    internal static CharsGrid Create(LegacyFwk.FontDescriptor fDescriptor) =>
-        new(new Size(fDescriptor.Width, fDescriptor.Height), fDescriptor.LeftMargin);
-
-    internal Point ScreenToCharPoint(Point screenPoint)
-    {
-        var x = (screenPoint.X - XMargin) / CellSize.Width;
-        var y = screenPoint.Y / CellSize.Height;
-        return new Point(x, y);
-    }
-
-    internal Point CharPointToScreen(Point charPoint)
-    {
-        var x = charPoint.X * CellSize.Width + XMargin;
-        var y = charPoint.Y * CellSize.Height;
-        return new Point(x, y);
-    }
-
-    internal Rectangle CharPointToScreenRect(Point charPoint)
-    {
-        var screenPoint = CharPointToScreen(charPoint);
-        return new Rectangle(screenPoint, CellSize);
-    }
-
-    internal void SetBounds(Rectangle bounds)
-    {
-        Bounds = bounds;
-        MaxVisibleColumns = (bounds.Width + CellSize.Width - 1 - XMargin) / CellSize.Width;
-        MaxVisibleLines = (bounds.Height + CellSize.Height - 1) / CellSize.Height;
-    }
-}
-
 public partial class EditorTextViewer : UserControl
 {
-    private const TextFormatFlags TextFFlags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
+    private const TextFormatFlags TextFormatFlags = NoPadding | NoPrefix | SingleLine;
 
     private readonly CharsGrid _grid;    
     private readonly Win32Caret _caret;
-    private readonly GridSelector _selector;
+    private readonly Selector _selector;
     private string[] _lines;
+    private Point? _mouseDownScreenPoint;
 
-    internal Point CaretLocation { get; set; }
+    internal Point CaretPoint { get; set; }
 
     public event EventHandler<char>? KeyPressed;
-    public event EventHandler<Point>? CaretLocationChanged;
+    public event EventHandler<Point>? CaretPointChanged;
 
     public EditorTextViewer()
     {
         InitializeComponent();
 
-        _grid = CharsGrid.Create(LegacyFwk.FontDescriptor.DefaultFixed);
-        _caret = new Win32Caret(this);
-        _selector = new GridSelector(this, _grid);
+        _grid = new CharsGrid(LegacyFwk.FontDescriptor.DefaultFixed);
+        _caret = new Win32Caret(this) { Size = _grid.CellSize };
+        _selector = new Selector();
         _lines = Array.Empty<string>();
-        CaretLocation = Point.Empty;
+        CaretPoint = Point.Empty;
         
         base.DoubleBuffered = true;
         base.Font = LegacyFwk.FontDescriptor.DefaultFixed.Font;
@@ -86,115 +42,182 @@ public partial class EditorTextViewer : UserControl
         Invalidate();
     }
 
-    internal void SetProjector(TextProjector projector)
+    private void ApplyScrollBarOffsets(ref Point point)
     {
-        _selector = new GridSelector(this, projector);
-        _caret.Size = projector.CellSize;
+        point.X += _hScrollBar.Value;
+        point.Y += _vScrollBar.Value;
     }
 
-    private void OnMouseClick(object? sender, MouseEventArgs e)
+    private void EnsureVisibleCaret()
     {
-        var caretLocation = _grid.ScreenToCharPoint(e.Location);
-        ApplyScrollBarOffsets(ref caretLocation);
-        CaretLocation = caretLocation;
-        CaretLocationChanged?.Invoke(this, caretLocation);
-        SetWin32CaretPos(caretLocation);
+        var caretPoint = CaretPoint;
+        UnapplyScrollBarOffsets(ref caretPoint);
+        var screenRect = _grid.CharPointToScreenRect(caretPoint);
+        var bounds = _grid.Bounds;
+        var height = _grid.CellSize.Height;
+        var width = _grid.CellSize.Width;
+
+        var desiredHScroll = _hScrollBar.Value
+            - Math.Max(0, (bounds.Left - _grid.XMargin - screenRect.Left + width - 1) / width)
+            + Math.Max(0, (screenRect.Right - (bounds.Right - _grid.XMargin) + width - 1) / width);
+        var desiredVScroll = _vScrollBar.Value
+            - Math.Max(0, (bounds.Top - screenRect.Top + height - 1) / height)
+            + Math.Max(0, (screenRect.Bottom - bounds.Bottom + height - 1) / height);
+
+        if (_hScrollBar.Value != desiredHScroll)
+            _hScrollBar.RaiseMouseWheel((_hScrollBar.Value - desiredHScroll) * SystemInformation.MouseWheelScrollDelta);
+
+        if (_vScrollBar.Value != desiredVScroll)
+            _vScrollBar.RaiseMouseWheel((_vScrollBar.Value - desiredVScroll) * SystemInformation.MouseWheelScrollDelta);
     }
-    
+
     // TODO there is an issue here, is being called twice and only the second call is valid.
     private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
     {
-        var newCaretPoint = CaretLocation;
+        var newCaretPoint = CaretPoint;
         UnapplyScrollBarOffsets(ref newCaretPoint);
         _caret.Position = _grid.CharPointToScreen(newCaretPoint);
-        Debug.WriteLine(_caret.Position, nameof(OnHScrollBarScroll));
         Invalidate();
     }
     
     // TODO there is an issue here, is being called twice and only the second call is valid.
     private void OnVScrollBarScroll(object? sender, ScrollEventArgs e)
     {
-        var newCaretPoint = CaretLocation;
+        var newCaretPoint = CaretPoint;
         UnapplyScrollBarOffsets(ref newCaretPoint);
         _caret.Position = _grid.CharPointToScreen(newCaretPoint);
-        Debug.WriteLine(_caret.Position, nameof(OnHScrollBarScroll));
         Invalidate();
     }
     
     // TODO still need to handle Home, End, Delete, PageUp, PageDown, Ctrl + A, Ctrl + C, Ctrl + X, Ctrl + V, Ctrl + Z, Ctrl + Y, etc.
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (_selector is null) return;
-
-        // TODO all this logic could go to the presenter ??
-        var nCGridLoc = CaretLocation;
+        // TODO notify arrow key via event to presenter
+        var newCaretPoint = CaretPoint;
         switch (e.KeyCode)
         {
             case Keys.Left:
-                if (nCGridLoc.X > 0) nCGridLoc.X--;
-                else if (nCGridLoc.Y > 0)
+                if (newCaretPoint.X > 0) newCaretPoint.X--;
+                else if (newCaretPoint.Y > 0)
                 {
-                    nCGridLoc.Y--;
-                    nCGridLoc.X = _lines[nCGridLoc.Y].Length;
+                    newCaretPoint.Y--;
+                    newCaretPoint.X = _lines[newCaretPoint.Y].Length;
                 }
                 break;
             case Keys.Right:
-                if (nCGridLoc.X < _lines[nCGridLoc.Y].Length) nCGridLoc.X++;
-                else if (nCGridLoc.Y + 1 < _lines.Length)
+                if (newCaretPoint.X < _lines[newCaretPoint.Y].Length) newCaretPoint.X++;
+                else if (newCaretPoint.Y + 1 < _lines.Length)
                 {
-                    nCGridLoc.Y++;
-                    nCGridLoc.X = 0;
+                    newCaretPoint.Y++;
+                    newCaretPoint.X = 0;
                 }
                 break;
             case Keys.Up:
-                if (nCGridLoc.Y > 0)
+                if (newCaretPoint.Y > 0)
                 {
-                    nCGridLoc.Y--;
-                    nCGridLoc.X = Math.Min(nCGridLoc.X, _lines[nCGridLoc.Y].Length);
+                    newCaretPoint.Y--;
+                    newCaretPoint.X = Math.Min(newCaretPoint.X, _lines[newCaretPoint.Y].Length);
                 }
                 break;
             case Keys.Down:
-                if (nCGridLoc.Y + 1 < _lines.Length)
+                if (newCaretPoint.Y + 1 < _lines.Length)
                 {
-                    nCGridLoc.Y++;
-                    nCGridLoc.X = Math.Min(nCGridLoc.X, _lines[nCGridLoc.Y].Length);
+                    newCaretPoint.Y++;
+                    newCaretPoint.X = Math.Min(newCaretPoint.X, _lines[newCaretPoint.Y].Length);
                 }
                 break;
         }
 
-        if (nCGridLoc == CaretLocation) return;
+        if (newCaretPoint == CaretPoint) return;
 
         if ((ModifierKeys & Keys.Shift) is Keys.Shift)
         {
-            // TODO fix
-            var startRect = _grid.CharPointToScreenRect(CaretLocation);
-            var endRect = _grid.CharPointToScreenRect(nCGridLoc);
-            startRect.X -= _hScrollBar.Value;
-            startRect.Y -= _vScrollBar.Value;
-            endRect.X -= _hScrollBar.Value;
-            endRect.Y -= _vScrollBar.Value;
-
-            Debug.WriteLine(nameof(OnKeyDown));
-            Debug.Indent();
-            Debug.WriteLine(CaretLocation, nameof(CaretLocation));
-            Debug.WriteLine(nCGridLoc, nameof(nCGridLoc));
-            Debug.WriteLine(startRect, nameof(startRect));
-            Debug.WriteLine(endRect, nameof(endRect));
-            Debug.Unindent();
-
-            _selector.StartSelect(CaretLocation);
-            _selector.EndSelect(nCGridLoc);
+            switch (_selector.State)
+            {
+                case SelectionState.Unselected:
+                    _selector.StartSelect(newCaretPoint);
+                    break;
+                case SelectionState.Selecting:
+                    _selector.Select(newCaretPoint);
+                    break;
+                case SelectionState.Selected:
+                    _selector.Select(newCaretPoint, true);
+                    break;
+                default:
+                    throw new IndexOutOfRangeException();
+            }
         }
 
-        CaretLocation = nCGridLoc;
-        CaretLocationChanged?.Invoke(this, nCGridLoc);
-        SetWin32CaretPos(nCGridLoc);
+        CaretPoint = newCaretPoint;
+        CaretPointChanged?.Invoke(this, newCaretPoint);
+        SetWin32CaretPos(newCaretPoint);
     }
-    
+
+    private void OnKeyUp(object sender, KeyEventArgs e)
+    {
+        if ((ModifierKeys & Keys.Shift) is not Keys.Shift && _selector.State is SelectionState.Selecting)
+        {
+            _selector.EndSelect();
+            Invalidate();
+        }
+    }
+
     private void OnKeyPress(object? sender, KeyPressEventArgs e)
     {
         KeyPressed?.Invoke(this, e.KeyChar);
         e.Handled = true;
+    }
+
+    private void OnMouseClick(object? sender, MouseEventArgs e)
+    {
+        var caretPoint = _grid.ScreenToCharPoint(e.Location);
+        ApplyScrollBarOffsets(ref caretPoint);
+        CaretPoint = caretPoint;
+        CaretPointChanged?.Invoke(this, caretPoint);
+        SetWin32CaretPos(caretPoint);
+    }
+
+    private void OnMouseDown(object sender, MouseEventArgs e)
+    {
+        _mouseDownScreenPoint = e.Location;
+        _selector.Clear();
+        Invalidate();
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_mouseDownScreenPoint is null) return;
+
+        switch (_selector.State)
+        {
+            case SelectionState.Unselected:
+            {
+                var startPoint = _grid.ScreenToCharPoint(_mouseDownScreenPoint.Value);
+                ApplyScrollBarOffsets(ref startPoint);
+                _selector.StartSelect(startPoint);
+                Invalidate();
+                break;
+            }
+            case SelectionState.Selecting:
+                var endPoint = _grid.ScreenToCharPoint(e.Location);
+                ApplyScrollBarOffsets(ref endPoint);
+                _selector.Select(endPoint);
+                Invalidate();
+                break;
+            case SelectionState.Selected:
+            default:
+                break;
+        }
+    }
+
+    private void OnMouseUp(object sender, MouseEventArgs e)
+    {
+        _mouseDownScreenPoint = null;
+        if (_selector.State is not SelectionState.Selecting) return;
+        var endPoint = _grid.ScreenToCharPoint(e.Location);
+        ApplyScrollBarOffsets(ref endPoint);
+        _selector.EndSelect();
+        Invalidate();
     }
 
     private void OnSizeChanged(object? sender, EventArgs e)
@@ -203,34 +226,7 @@ public partial class EditorTextViewer : UserControl
         gridBounds.Width -= _vScrollBar.Width;
         gridBounds.Height -= _hScrollBar.Height;
         _grid.SetBounds(gridBounds);
-        EnsureProjection(CaretLocation);
-    }
-
-    private void EnsureProjection(Point charPoint)
-    {
-        UnapplyScrollBarOffsets(ref charPoint);
-        var screenRect = _grid.CharPointToScreenRect(charPoint);
-        var x = _hScrollBar.Value;
-        var y = _vScrollBar.Value;
-        var bounds = _grid.Bounds;
-        var height = _grid.CellSize.Height;
-        var width = _grid.CellSize.Width;
-        
-        y -= Math.Max(0, (bounds.Top - screenRect.Top + height - 1) / height);
-        y += Math.Max(0, (screenRect.Bottom - bounds.Bottom + height - 1) / height);
-        x -= Math.Max(0, (bounds.Left - _grid.XMargin - screenRect.Left + width - 1) / width);
-        x += Math.Max(0, (screenRect.Right - (bounds.Right - _grid.XMargin) + width - 1) / width);
-        
-        if (_hScrollBar.Value != x)
-            _hScrollBar.RaiseMouseWheel((_hScrollBar.Value - x) * SystemInformation.MouseWheelScrollDelta);
-
-        if (_vScrollBar.Value != y)
-            _vScrollBar.RaiseMouseWheel((_vScrollBar.Value - y) * SystemInformation.MouseWheelScrollDelta);
-    }
-
-    private void ApplyScrollBarOffsets(ref Point point) {
-        point.X += _hScrollBar.Value;
-        point.Y += _vScrollBar.Value;
+        EnsureVisibleCaret();
     }
     
     private void UnapplyScrollBarOffsets(ref Point point)
@@ -238,52 +234,133 @@ public partial class EditorTextViewer : UserControl
         point.X -= _hScrollBar.Value;
         point.Y -= _vScrollBar.Value;
     }
-    
+
     private void OnPaint(object? sender, PaintEventArgs e)
     {
         var textBackgroundBrush = new SolidBrush(Color.White);
         for (var i = _vScrollBar.Value; i < _lines.Length; i++)
         {
-            var visibleCols = Math.Min(_lines[i].Length - _hScrollBar.Value, _grid.MaxVisibleColumns);
+            var line = _lines[i];
+            var visibleCols = Math.Min(line.Length - _hScrollBar.Value, _grid.MaxVisibleColumns);
             if (visibleCols <= 0) continue;
 
-            var firstCharRect = _grid.CharPointToScreenRect(new Point(0, i - _vScrollBar.Value));
-            var lastCharRect = _grid.CharPointToScreenRect(new Point(visibleCols - 1, i - _vScrollBar.Value));
+            var screenY = i - _vScrollBar.Value;
+            var firstCharRect = _grid.CharPointToScreenRect(new Point(0, screenY));
+            var lastCharRect = _grid.CharPointToScreenRect(new Point(visibleCols - 1, screenY));
             var textRect = Rectangle.Union(firstCharRect, lastCharRect);
             var bgRect = textRect with { X = 0 };
 
             bgRect.Inflate(textRect.Left, 0);
             e.Graphics.FillRectangle(textBackgroundBrush, bgRect);
 
-            var text = _lines[i].AsSpan(_hScrollBar.Value, visibleCols);
-            TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFFlags);
+            var text = line.AsSpan(_hScrollBar.Value, visibleCols);
+            TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFormatFlags);
         }
-
-        if (_selector is null) return;
 
         // TODO integrate this in the loop above (make a grid selection per line ?)
-        switch (_selector.State)
+        if (_selector.State is SelectionState.Selecting or SelectionState.Selected)
         {
-            case GridSelector.Status.Selecting:
-                {
-                    e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.BlueViolet)), _selector.Selection);
-                    break;
-                }
-            case GridSelector.Status.Selected:
-                {
-                    e.Graphics.DrawRectangle(new Pen(new SolidBrush(Color.YellowGreen)), _selector.Selection);
-                    break;
-                }
-            case GridSelector.Status.Unselected:
-            default:
-                break;
+            var startPoint = _selector.Start;
+            var endPoint = _selector.End;
+            UnapplyScrollBarOffsets(ref startPoint);
+            UnapplyScrollBarOffsets(ref endPoint);
+            var selectionRect = Rectangle.Union(
+                _grid.CharPointToScreenRect(startPoint),
+                _grid.CharPointToScreenRect(endPoint));
+
+            e.Graphics.DrawRectangle(
+                _selector.State is SelectionState.Selecting
+                    ? new Pen(new SolidBrush(Color.BlueViolet))
+                    : new Pen(new SolidBrush(Color.YellowGreen)),
+                selectionRect);
         }
     }
 
-    private void SetWin32CaretPos(Point location)
+    private void SetWin32CaretPos(Point charPoint)
     {
-        UnapplyScrollBarOffsets(ref location);
-        _caret.Position = _grid.CharPointToScreen(location);
+        UnapplyScrollBarOffsets(ref charPoint);
+        _caret.Position = _grid.CharPointToScreen(charPoint);
         Invalidate();
     }
+
+    #region Private Types
+
+    private class CharsGrid
+    {
+        internal Size CellSize { get; }
+        internal int XMargin { get; }
+        internal Rectangle Bounds { get; private set; }
+        internal int MaxVisibleColumns { get; private set; }
+
+        internal CharsGrid(LegacyFwk.FontDescriptor fDescriptor)
+        {
+            XMargin = fDescriptor.LeftMargin;
+            CellSize = new Size(fDescriptor.Width, fDescriptor.Height);
+        }
+
+        internal Point ScreenToCharPoint(Point screenPoint)
+        {
+            var x = (screenPoint.X - XMargin) / CellSize.Width;
+            var y = screenPoint.Y / CellSize.Height;
+            return new Point(x, y);
+        }
+
+        internal Point CharPointToScreen(Point charPoint)
+        {
+            var x = charPoint.X * CellSize.Width + XMargin;
+            var y = charPoint.Y * CellSize.Height;
+            return new Point(x, y);
+        }
+
+        internal Rectangle CharPointToScreenRect(Point charPoint)
+        {
+            var screenPoint = CharPointToScreen(charPoint);
+            return new Rectangle(screenPoint, CellSize);
+        }
+
+        internal void SetBounds(Rectangle bounds)
+        {
+            Bounds = bounds;
+            MaxVisibleColumns = (bounds.Width + CellSize.Width - 1 - XMargin) / CellSize.Width;
+        }
+    }
+
+    private enum SelectionState
+    {
+        Unselected,
+        Selecting,
+        Selected,
+    }
+
+    private class Selector
+    {
+        internal Point Start { get; private set; }
+        internal Point End { get; private set; }
+        internal SelectionState State { get; private set; } = SelectionState.Unselected;
+
+        internal void Clear()
+        {
+            Start = End = Point.Empty;
+            State = SelectionState.Unselected;
+        }
+
+        internal void EndSelect()
+        {
+            State = SelectionState.Selected;
+        }
+
+        internal void Select(Point endPoint, bool restart = false)
+        {
+            End = endPoint;
+            if (restart) State = SelectionState.Selecting;
+        }
+
+        internal void StartSelect(Point startPoint)
+        {
+            Start = End = startPoint;
+            State = SelectionState.Selecting;
+        }
+    }
+
+    #endregion
 }
