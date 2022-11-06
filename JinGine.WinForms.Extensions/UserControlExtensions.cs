@@ -16,5 +16,5 @@ public static class UserControlExtensions
 
     public static void InitMouseWheelScrollDelegation(this UserControl userControl, VScrollBar vScrollBar) =>
         userControl.MouseWheel += (_, e) =>
-            vScrollBar.RaiseMouseWheel(e.Delta * SystemInformation.MouseWheelScrollLines);
+            vScrollBar.InvokeMouseWheel(e.Delta * SystemInformation.MouseWheelScrollLines);
 }
