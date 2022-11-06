@@ -70,21 +70,23 @@ public partial class EditorTextViewer : UserControl
         if (_vScrollBar.Value != desiredVScroll)
             _vScrollBar.RaiseMouseWheel((_vScrollBar.Value - desiredVScroll) * SystemInformation.MouseWheelScrollDelta);
     }
-
-    // TODO there is an issue here, is being called twice and only the second call is valid.
+    
     private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
     {
+        if (e.Type is ScrollEventType.EndScroll || e.OldValue.Equals(e.NewValue)) return;
         var newCaretPoint = CaretPoint;
-        UnapplyScrollBarOffsets(ref newCaretPoint);
+        newCaretPoint.X -= e.NewValue;
+        newCaretPoint.Y -= _vScrollBar.Value;
         _caret.Position = _grid.CharPointToScreen(newCaretPoint);
         Invalidate();
     }
     
-    // TODO there is an issue here, is being called twice and only the second call is valid.
     private void OnVScrollBarScroll(object? sender, ScrollEventArgs e)
     {
+        if (e.Type is ScrollEventType.EndScroll || e.OldValue.Equals(e.NewValue)) return;
         var newCaretPoint = CaretPoint;
-        UnapplyScrollBarOffsets(ref newCaretPoint);
+        newCaretPoint.X -= _hScrollBar.Value;
+        newCaretPoint.Y -= e.NewValue;
         _caret.Position = _grid.CharPointToScreen(newCaretPoint);
         Invalidate();
     }
