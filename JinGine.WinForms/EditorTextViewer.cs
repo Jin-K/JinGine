@@ -15,6 +15,8 @@ public partial class EditorTextViewer : UserControl
 
     internal Point CaretPoint { get; set; }
 
+    private Size ScrollSize => new(_hScrollBar.Value, _vScrollBar.Value);
+
     public event EventHandler<char>? KeyPressed;
     public event EventHandler<Point>? CaretPointChanged;
 
@@ -42,16 +44,9 @@ public partial class EditorTextViewer : UserControl
         Invalidate();
     }
 
-    private void ApplyScrollBarOffsets(ref Point point)
-    {
-        point.X += _hScrollBar.Value;
-        point.Y += _vScrollBar.Value;
-    }
-
     private void EnsureVisibleCaret()
     {
-        var caretPoint = CaretPoint;
-        UnapplyScrollBarOffsets(ref caretPoint);
+        var caretPoint = Point.Subtract(CaretPoint, ScrollSize);
         var screenRect = _grid.CharPointToScreenRect(caretPoint);
         var bounds = _grid.Bounds;
         var height = _grid.CellSize.Height;
@@ -172,8 +167,11 @@ public partial class EditorTextViewer : UserControl
 
     private void OnMouseClick(object? sender, MouseEventArgs e)
     {
-        var caretPoint = _grid.ScreenToCharPoint(e.Location);
-        ApplyScrollBarOffsets(ref caretPoint);
+        var caretPoint = Point.Add(_grid.ScreenToCharPoint(e.Location), ScrollSize);
+        if (caretPoint.Y >= _lines.Length) return;
+        var line = _lines[caretPoint.Y];
+        if (caretPoint.X > line.Length) return;
+
         CaretPoint = caretPoint;
         CaretPointChanged?.Invoke(this, caretPoint);
         SetWin32CaretPos(caretPoint);
@@ -195,15 +193,13 @@ public partial class EditorTextViewer : UserControl
             case SelectionState.Unselected:
             {
                 var startPoint = _grid.ScreenToCharPoint(_mouseDownScreenPoint.Value);
-                ApplyScrollBarOffsets(ref startPoint);
-                _selector.StartSelect(startPoint);
+                _selector.StartSelect(Point.Add(startPoint, ScrollSize));
                 Invalidate();
                 break;
             }
             case SelectionState.Selecting:
                 var endPoint = _grid.ScreenToCharPoint(e.Location);
-                ApplyScrollBarOffsets(ref endPoint);
-                _selector.Select(endPoint);
+                _selector.Select(Point.Add(endPoint, ScrollSize));
                 Invalidate();
                 break;
             case SelectionState.Selected:
@@ -216,8 +212,6 @@ public partial class EditorTextViewer : UserControl
     {
         _mouseDownScreenPoint = null;
         if (_selector.State is not SelectionState.Selecting) return;
-        var endPoint = _grid.ScreenToCharPoint(e.Location);
-        ApplyScrollBarOffsets(ref endPoint);
         _selector.EndSelect();
         Invalidate();
     }
@@ -256,10 +250,8 @@ public partial class EditorTextViewer : UserControl
         // TODO integrate this in the loop above (make a grid selection per line ?)
         if (_selector.State is SelectionState.Selecting or SelectionState.Selected)
         {
-            var startPoint = _selector.Start;
-            var endPoint = _selector.End;
-            UnapplyScrollBarOffsets(ref startPoint);
-            UnapplyScrollBarOffsets(ref endPoint);
+            var startPoint = Point.Subtract(_selector.Start, ScrollSize);
+            var endPoint = Point.Subtract(_selector.End, ScrollSize);
             var selectionRect = Rectangle.Union(
                 _grid.CharPointToScreenRect(startPoint),
                 _grid.CharPointToScreenRect(endPoint));
@@ -274,15 +266,8 @@ public partial class EditorTextViewer : UserControl
 
     private void SetWin32CaretPos(Point charPoint)
     {
-        UnapplyScrollBarOffsets(ref charPoint);
-        _caret.Position = _grid.CharPointToScreen(charPoint);
+        _caret.Position = _grid.CharPointToScreen(Point.Subtract(charPoint, ScrollSize));
         Invalidate();
-    }
-    
-    private void UnapplyScrollBarOffsets(ref Point point)
-    {
-        point.X -= _hScrollBar.Value;
-        point.Y -= _vScrollBar.Value;
     }
 
     #region Private Types

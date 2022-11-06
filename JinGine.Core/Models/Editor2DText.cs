@@ -24,7 +24,16 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
 
     public int Count => _lines.Length;
 
-    public LineSegment this[int index] => _lines[index];
+    public LineSegment this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= _lines.Length)
+                throw new ArgumentOutOfRangeException(nameof(index), "That line does not exist.");
+
+            return _lines[index];
+        }
+    }
 
     public Editor2DText(string content)
     {
@@ -66,9 +75,8 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
 
     private static string ToPrintable(ReadOnlySpan<char> source, int startIndex, int length)
     {
-        const int MaxStackSize = 512;
-        var chars = length > MaxStackSize ? new char[length] : stackalloc char[MaxStackSize];
-        chars = chars.Slice(0, length);
+        var chars = length > 512 ? new char[length] : stackalloc char[512];
+        chars = chars[..length];
 
         for (var i = 0; i < length; i++)
         {
