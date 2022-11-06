@@ -230,12 +230,6 @@ public partial class EditorTextViewer : UserControl
         _grid.SetBounds(gridBounds);
         EnsureVisibleCaret();
     }
-    
-    private void UnapplyScrollBarOffsets(ref Point point)
-    {
-        point.X -= _hScrollBar.Value;
-        point.Y -= _vScrollBar.Value;
-    }
 
     private void OnPaint(object? sender, PaintEventArgs e)
     {
@@ -283,6 +277,12 @@ public partial class EditorTextViewer : UserControl
         UnapplyScrollBarOffsets(ref charPoint);
         _caret.Position = _grid.CharPointToScreen(charPoint);
         Invalidate();
+    }
+    
+    private void UnapplyScrollBarOffsets(ref Point point)
+    {
+        point.X -= _hScrollBar.Value;
+        point.Y -= _vScrollBar.Value;
     }
 
     #region Private Types
