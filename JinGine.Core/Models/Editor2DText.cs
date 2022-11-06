@@ -66,7 +66,10 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
 
     private static string ToPrintable(ReadOnlySpan<char> source, int startIndex, int length)
     {
-        Span<char> chars = stackalloc char[length];
+        const int MaxStackSize = 512;
+        var chars = length > MaxStackSize ? new char[length] : stackalloc char[MaxStackSize];
+        chars = chars.Slice(0, length);
+
         for (var i = 0; i < length; i++)
         {
             var ch = source[i + startIndex];

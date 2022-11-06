@@ -4,15 +4,15 @@
 internal class GridSelector
 {
     private readonly Control _control;
-    private readonly TextProjector _projector;
+    private readonly CharsGrid _grid;
     private Point _gridStartLoc;
     private Point _gridEndLoc;
     private Point? _mouseDownLoc;
 
-    internal GridSelector(Control control, TextProjector projector)
+    internal GridSelector(Control control, CharsGrid grid)
     {
         _control = control;
-        _projector = projector;
+        _grid = grid;
         _gridStartLoc = Point.Empty;
         _gridEndLoc = Point.Empty;
         _mouseDownLoc = null;
@@ -25,7 +25,17 @@ internal class GridSelector
 
     internal Status State { get; private set; }
 
-    internal Rectangle Selection => _projector.GridLocationsToScreenRect(_gridStartLoc, _gridEndLoc);
+    internal Rectangle Selection {
+        get {
+            return Rectangle.Union(
+                _grid.CharPointToScreenRect(_gridStartLoc),
+                _grid.CharPointToScreenRect(_gridEndLoc)
+            );
+            // return _projector.GridLocationsToScreenRect(_gridStartLoc, _gridEndLoc);
+        }
+    }
+
+    internal (Point start, Point end)? Selection2 => State is Status.Unselected ? null : (_gridStartLoc, _gridEndLoc);
 
     internal void StartSelect(Point startPoint)
     {
