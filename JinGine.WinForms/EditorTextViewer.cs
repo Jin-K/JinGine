@@ -230,16 +230,6 @@ public partial class EditorTextViewer : UserControl
     {
         var textBackBrush = new SolidBrush(Color.White);
         var selectedTextBackBrush = new SolidBrush(Color.LightYellow);
-
-        ISet<int> selectedLineIndexes;
-        if (_selector.State is SelectionState.Selected or SelectionState.Selecting)
-        {
-            var start = Math.Min(_selector.Start.Y, _selector.End.Y);
-            var length = Math.Max(_selector.Start.Y, _selector.End.Y) - start + 1;
-            selectedLineIndexes = Enumerable.Range(start, length).ToHashSet();
-        }
-        else selectedLineIndexes = new HashSet<int>();
-        
         for (var i = _vScrollBar.Value; i < _lines.Length; i++)
         {
             var line = _lines[i];
@@ -253,8 +243,12 @@ public partial class EditorTextViewer : UserControl
             var bgRect = textRect with { X = 0 };
 
             bgRect.Inflate(_grid.XMargin, 0);
-            if (selectedLineIndexes.Contains(i))
+            if (_selector.SelectsLine(i, out var x1, out var x2))
             {
+                if (x1 is not -1)
+                {
+                    // TODO continue
+                }
                 e.Graphics.FillRectangle(selectedTextBackBrush, bgRect);
             }
             else
@@ -354,7 +348,29 @@ public partial class EditorTextViewer : UserControl
         internal void Select(Point endPoint)
         {
             End = endPoint;
+            // TODO flip start/end when needed so we can simplify/optimize SelectsLine which is called in the OnPaint loop
             State = SelectionState.Selecting;
+        }
+
+        internal bool SelectsLine(int index, out int startColIndex, out int endColIndex)
+        {
+            startColIndex = endColIndex = -1;
+            if (State is SelectionState.Unselected) return false;
+            var startY = Math.Min(Start.Y, End.Y);
+            var endY = Math.Max(Start.Y, End.Y);
+            if (startY > index || index > endY) return false;
+
+            if (Start.Y == End.Y)
+            {
+                startColIndex = Start.X;
+                endColIndex = End.X;
+            }
+            else if (Start.Y == index)
+                startColIndex = Start.X;
+            else if (End.Y == index)
+                endColIndex = End.X;
+
+            return true;
         }
 
         internal void StartSelect(Point startPoint)
