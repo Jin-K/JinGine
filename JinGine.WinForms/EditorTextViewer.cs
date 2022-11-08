@@ -1,4 +1,5 @@
-﻿using JinGine.WinForms.Views;
+﻿using System.ComponentModel;
+using JinGine.WinForms.Views;
 using static System.Windows.Forms.TextFormatFlags;
 
 namespace JinGine.WinForms;
@@ -18,6 +19,9 @@ public partial class EditorTextViewer : UserControl
 
     internal Point CaretPoint { get; set; }
 
+    [Bindable(true)]
+    internal TextSelectionRange TextSelection { get; set; }
+
     public event EventHandler<char>? KeyPressed;
     public event EventHandler<Point>? CaretPointChanged;
 
@@ -33,6 +37,7 @@ public partial class EditorTextViewer : UserControl
         _selector = new Selector();
         _lines = Array.Empty<string>();
         CaretPoint = Point.Empty;
+        TextSelection = TextSelectionRange.Empty;
         
         base.DoubleBuffered = true;
         base.Font = fontDescriptor.Font;

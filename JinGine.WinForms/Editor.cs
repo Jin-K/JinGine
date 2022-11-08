@@ -1,4 +1,5 @@
-﻿using JinGine.WinForms.Views;
+﻿using System.ComponentModel;
+using JinGine.WinForms.Views;
 
 namespace JinGine.WinForms;
 
@@ -10,6 +11,13 @@ public partial class Editor : UserControl, IEditorView
     private int Line { set => _lineLabel.Text = Convert.ToString(value); }
     private int Column { set => _columnLabel.Text = Convert.ToString(value); }
     private int Offset { set => _offsetLabel.Text = Convert.ToString(value); }
+
+    [Bindable(true)]
+    public TextSelectionRange TextSelection
+    {
+        get => _editorTextViewer.TextSelection;
+        set => _editorTextViewer.TextSelection = value;
+    }
 
     public event EventHandler<Point> CaretPointChanged
     {
