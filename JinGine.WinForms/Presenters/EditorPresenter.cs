@@ -1,7 +1,7 @@
-﻿using JinGine.Core.BusinessLogic;
-using JinGine.Core.Models;
+﻿using JinGine.Domain.Models;
+using JinGine.Domain.Services;
+using JinGine.Infra.Services;
 using JinGine.WinForms.Views;
-using LegacyFwk;
 
 namespace JinGine.WinForms.Presenters;
 
@@ -9,8 +9,8 @@ internal class EditorPresenter
 {
     private readonly IEditorView _view;
     private readonly Editor2DText _model;
-    private readonly IEditor2DTextWriter _writer;
-    private readonly IEditor2DTextReader _reader;
+    private readonly Editor2DTextWriter _writer;
+    private readonly Editor2DTextReader _reader;
 
     internal EditorPresenter(IEditorView view, string fileName)
     {

@@ -1,10 +1,12 @@
 using System.Data;
-using JinGine.Core.Models;
-using JinGine.Core.Serialization;
-using JinGine.Core.Serialization.Strategies;
+using JinGine.Domain.Models;
+using JinGine.Infra.Serialization;
+using JinGine.Infra.Serialization.Strategies;
+using JinGine.Infra.Services;
+using JinGine.WinForms.Controls;
 using JinGine.WinForms.Properties;
 using JinGine.WinForms.Views;
-using LegacyFwk;
+using JinGine.WinForms.Views.Models;
 
 namespace JinGine.WinForms.Presenters;
 

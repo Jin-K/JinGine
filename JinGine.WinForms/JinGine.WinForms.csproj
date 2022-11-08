@@ -9,9 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JinGine.Core\JinGine.Core.csproj" />
-    <ProjectReference Include="..\JinGine.WinForms.Extensions\JinGine.WinForms.Extensions.csproj" />
-    <ProjectReference Include="..\LegacyFwk\LegacyFwk.csproj" />
+    <ProjectReference Include="..\JinGine.Domain\JinGine.Domain.csproj" />
+    <ProjectReference Include="..\JinGine.Infra\JinGine.Infra.csproj" />
   </ItemGroup>
 
   <ItemGroup>

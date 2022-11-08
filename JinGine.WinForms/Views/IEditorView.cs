@@ -1,4 +1,6 @@
-﻿namespace JinGine.WinForms.Views;
+﻿using JinGine.WinForms.Views.Models;
+
+namespace JinGine.WinForms.Views;
 
 internal interface IEditorView
 {
