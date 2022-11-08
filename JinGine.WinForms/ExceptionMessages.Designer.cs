@@ -61,6 +61,15 @@ namespace JinGine.WinForms {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Should be zero or positive..
+        /// </summary>
+        internal static string GridProjector_SetOffsets_Should_be_zero_or_positive_ {
+            get {
+                return ResourceManager.GetString("GridProjector_SetOffsets_Should_be_zero_or_positive_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot handle type: {0}.
         /// </summary>
         internal static string MainPresenter_Cannot_Handle_Type {

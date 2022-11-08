@@ -1,44 +1,10 @@
 ﻿using System.Collections;
-using System.Text;
 
 // ReSharper disable once CheckNamespace
 namespace System;
 
 public static class StringExtensions
 {
-    public static string ToPrintable(this string @this, int startIndex, int length)
-    {
-        var builder = new StringBuilder();
-
-        for (var i = startIndex; i <= startIndex + length - 1; i++)
-        {
-            var ch = @this[i];
-            switch (ch)
-            {
-                case (char)0:
-                    builder.Append('¸');
-                    break;
-                case '\t':
-                    builder.Append('·');
-                    break;
-                case < ' ':
-                    builder.Append('…');
-                    break;
-                case < (char)0x7f:
-                    builder.Append(ch);
-                    break;
-                case < (char)0xa1:
-                    builder.Append('¡');
-                    break;
-                default:
-                    builder.Append(ch);
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
-
     /// <summary>
     /// Converts a text to a list of text-lines.
     /// </summary>

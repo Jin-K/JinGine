@@ -54,6 +54,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
             this.Controls.Add(this._hScrollBar);
             this.Controls.Add(this._vScrollBar);
             this.Name = "EditorTextViewer";
@@ -61,7 +62,11 @@
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.OnPaint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnKeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OnMouseClick);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OnMouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.OnMouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.OnMouseUp);
             this.ResumeLayout(false);
 
         }

@@ -24,7 +24,16 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
 
     public int Count => _lines.Length;
 
-    public LineSegment this[int index] => _lines[index];
+    public LineSegment this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= _lines.Length)
+                throw new ArgumentOutOfRangeException(nameof(index), "That line does not exist.");
+
+            return _lines[index];
+        }
+    }
 
     public Editor2DText(string content)
     {
@@ -43,14 +52,16 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
             var index = text.IndexOfAny(LineTerminators, lineStart);
             if (index >= 0)
             {
-                res.Add(new LineSegment(text[lineStart..index], lineStart));
+                var content = ToPrintable(text, lineStart, index - lineStart);
+                res.Add(new LineSegment(content, lineStart));
                 lineStart = index + 1;
                 if (text[index] is '\r' && index + 1 < text.Length && text[index + 1] is '\n')
                     lineStart++;
             }
             else
             {
-                res.Add(new LineSegment(text[lineStart..], lineStart));
+                var content = ToPrintable(text, lineStart, text.Length - lineStart);
+                res.Add(new LineSegment(content, lineStart));
                 break;
             }
         }
@@ -61,6 +72,28 @@ public class Editor2DText : IReadOnlyList<Editor2DText.LineSegment>
     public IEnumerator<LineSegment> GetEnumerator() => _lines.AsEnumerable().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private static string ToPrintable(ReadOnlySpan<char> source, int startIndex, int length)
+    {
+        var chars = length > 512 ? new char[length] : stackalloc char[512];
+        chars = chars[..length];
+
+        for (var i = 0; i < length; i++)
+        {
+            var ch = source[i + startIndex];
+            chars[i] = ch switch
+            {
+                (char)0 => ',',
+                '\t' => '·',
+                < ' ' => '…',
+                < (char)0x7f => ch,
+                < (char)0xa1 => '¡',
+                _ => ch,
+            };
+        }
+
+        return new string(chars);
+    }
 
     public record LineSegment(string Content, int OffsetInText);
 }
