@@ -1,4 +1,5 @@
 using JinGine.WinForms.Views;
+using JinGine.WinForms.Views.Models;
 
 namespace JinGine.WinForms
 {

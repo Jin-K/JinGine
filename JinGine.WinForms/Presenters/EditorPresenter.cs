@@ -1,7 +1,7 @@
-﻿using JinGine.Core.BusinessLogic;
-using JinGine.Core.Models;
+﻿using JinGine.Domain.Models;
+using JinGine.Domain.Services;
+using JinGine.Infra.Services;
 using JinGine.WinForms.Views;
-using LegacyFwk;
 
 namespace JinGine.WinForms.Presenters;
 
@@ -9,8 +9,8 @@ internal class EditorPresenter
 {
     private readonly IEditorView _view;
     private readonly Editor2DText _model;
-    private readonly IEditor2DTextWriter _writer;
-    private readonly IEditor2DTextReader _reader;
+    private readonly Editor2DTextWriter _writer;
+    private readonly Editor2DTextReader _reader;
 
     internal EditorPresenter(IEditorView view, string fileName)
     {
@@ -30,7 +30,7 @@ internal class EditorPresenter
     {
         var segment = _model[e.Y];
         _writer.GoTo(segment.OffsetInText + e.X);
-        _view.SetCaretPosition(e.Y + 1, e.X + 1, _writer.PositionInText);
+        _view.SetCaret(e.Y + 1, e.X + 1, _writer.PositionInText);
     }
 
     private void OnKeyPressed(object? sender, char e)
@@ -47,6 +47,6 @@ internal class EditorPresenter
         var segment = _model[segmentIndex];
         var line = segmentIndex + 1;
         var column = offset - segment.OffsetInText + 1;
-        _view.SetCaretPosition(line, column, offset);
+        _view.SetCaret(line, column, offset);
     }
 }

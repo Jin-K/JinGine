@@ -1,4 +1,4 @@
-﻿using JinGine.Core.Models;
+﻿using JinGine.Domain.Models;
 using JinGine.WinForms.Views;
 
 namespace JinGine.WinForms.Presenters;
