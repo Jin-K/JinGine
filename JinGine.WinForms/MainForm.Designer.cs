@@ -1,4 +1,6 @@
-﻿namespace JinGine.WinForms
+﻿using JinGine.WinForms.Controls;
+
+namespace JinGine.WinForms
 {
     partial class MainForm
     {
@@ -28,7 +30,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.statusBar = new JinGine.WinForms.StatusBar();
+            this.statusBar = new StatusBar();
             this.tabsControl = new System.Windows.Forms.TabControl();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.SuspendLayout();

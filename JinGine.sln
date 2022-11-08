@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Core", "JinGine.Core\JinGine.Core.csproj", "{884EE357-FBB8-42B5-AF71-F11F8E720780}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.WinForms", "JinGine.WinForms\JinGine.WinForms.csproj", "{4BBB491C-AF3B-4BA6-9A88-BA36C7CF14BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.WinForms.Extensions", "JinGine.WinForms.Extensions\JinGine.WinForms.Extensions.csproj", "{BB416108-081C-4ABE-9E42-4221A6ABF38E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Domain", "JinGine.Domain\JinGine.Domain.csproj", "{12A305C6-AD25-4F4F-A4B5-E80460931409}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFwk", "LegacyFwk\LegacyFwk.csproj", "{EA473A32-B149-4D8E-A13A-5680DA4C1E3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Infra", "JinGine.Infra\JinGine.Infra.csproj", "{72801859-DF66-4155-8A73-60C7D6FE32FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,22 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{884EE357-FBB8-42B5-AF71-F11F8E720780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{884EE357-FBB8-42B5-AF71-F11F8E720780}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{884EE357-FBB8-42B5-AF71-F11F8E720780}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{884EE357-FBB8-42B5-AF71-F11F8E720780}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4BBB491C-AF3B-4BA6-9A88-BA36C7CF14BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4BBB491C-AF3B-4BA6-9A88-BA36C7CF14BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BBB491C-AF3B-4BA6-9A88-BA36C7CF14BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BBB491C-AF3B-4BA6-9A88-BA36C7CF14BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB416108-081C-4ABE-9E42-4221A6ABF38E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB416108-081C-4ABE-9E42-4221A6ABF38E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB416108-081C-4ABE-9E42-4221A6ABF38E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB416108-081C-4ABE-9E42-4221A6ABF38E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EA473A32-B149-4D8E-A13A-5680DA4C1E3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA473A32-B149-4D8E-A13A-5680DA4C1E3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA473A32-B149-4D8E-A13A-5680DA4C1E3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA473A32-B149-4D8E-A13A-5680DA4C1E3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12A305C6-AD25-4F4F-A4B5-E80460931409}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12A305C6-AD25-4F4F-A4B5-E80460931409}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12A305C6-AD25-4F4F-A4B5-E80460931409}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12A305C6-AD25-4F4F-A4B5-E80460931409}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
