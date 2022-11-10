@@ -11,12 +11,15 @@ internal class MainPresenter
 {
     private readonly IMainView _mainView;
 
-    internal MainPresenter(IMainView mainView, MainMenuFactory menuFactory)
+    internal MainPresenter(
+        IMainView mainView,
+        MainMenuFactory menuFactory,
+        IEventAggregator eventAggregator)
     {
         _mainView = mainView;
 
-        EventAggregator.Instance.Subscribe<UpdateStatusBarInfoEvent>(@event => _mainView.StatusBar.Info = @event.Info);
-        EventAggregator.Instance.Subscribe<LoadFileDataEvent>(OnLoadFileDataEvent);
+        eventAggregator.Subscribe<UpdateStatusBarInfoEvent>(@event => _mainView.StatusBar.Info = @event.Info);
+        eventAggregator.Subscribe<LoadFileDataEvent>(OnLoadFileDataEvent);
         
         CreateAndSetMenuItems(menuFactory);
     }

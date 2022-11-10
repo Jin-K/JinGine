@@ -7,11 +7,16 @@ namespace JinGine.App.Handlers;
 public class OpenCSharpFileCommandHandler : ICommandHandler<OpenCSharpFileCommand>
 {
     private readonly IFileManager _fileManager;
+    private readonly IEventAggregator _eventAggregator;
     private readonly AppSettings _settings;
 
-    public OpenCSharpFileCommandHandler(IFileManager fileManager, AppSettings settings)
+    public OpenCSharpFileCommandHandler(
+        IFileManager fileManager,
+        IEventAggregator eventAggregator,
+        AppSettings settings)
     {
         _fileManager = fileManager;
+        _eventAggregator = eventAggregator;
         _settings = settings;
     }
 
@@ -24,6 +29,6 @@ public class OpenCSharpFileCommandHandler : ICommandHandler<OpenCSharpFileComman
 
         var data = new Editor2DText(_fileManager.GetTextContent(fileName));
 
-        EventAggregator.Instance.Publish(new LoadFileDataEvent(data, fileName));
+        _eventAggregator.Publish(new LoadFileDataEvent(data, fileName));
     }
 }

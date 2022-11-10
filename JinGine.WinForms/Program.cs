@@ -2,6 +2,8 @@ using JinGine.App;
 using JinGine.App.Commands;
 using JinGine.App.Events;
 using JinGine.App.Handlers;
+using JinGine.App.Serialization;
+using JinGine.Infra.Serialization;
 using JinGine.Infra.Services;
 using JinGine.WinForms.Presenters;
 using JinGine.WinForms.Properties;
@@ -25,17 +27,19 @@ internal static class Program
 
         var container = new UnityContainer()
             .RegisterInstance(new AppSettings(Settings.Default.FilesPath), InstanceLifetime.Singleton)
-            .RegisterInstance(EventAggregator.Instance, InstanceLifetime.Singleton)
-            .RegisterType<IFileManager, FileManagerFacade>()
-            .RegisterType<ICommandHandler<OpenBinaryFileCommand>, OpenBinaryFileCommandHandler>()
-            .RegisterType<ICommandHandler<OpenCSharpFileCommand>, OpenCSharpFileCommandHandler>()
-            .RegisterType<ICommandDispatcher, CommandDispatcher>()
+            .RegisterInstance<IEventAggregator>(EventAggregator.Instance, InstanceLifetime.Singleton)
+            .RegisterSingleton<IFileManager, FileManagerFacade>()
+            .RegisterSingleton<ICommandHandler<OpenBinaryFileCommand>, OpenBinaryFileCommandHandler>()
+            .RegisterSingleton<ICommandHandler<OpenCSharpFileCommand>, OpenCSharpFileCommandHandler>()
+            .RegisterSingleton<ICommandDispatcher, CommandDispatcher>()
             .RegisterSingleton<MainMenuFactory>()
+            .RegisterSingleton<IBinaryFileSerializer, BinaryFileSerializer>()
             .AddExtension(new Diagnostic());
 
 
         var menuFactory = container.Resolve<MainMenuFactory>();
-        view.Tag = new MainPresenter(view, menuFactory);
+        var eventAggregator = container.Resolve<IEventAggregator>();
+        view.Tag = new MainPresenter(view, menuFactory, eventAggregator);
 
         Application.Run(view);
     }
