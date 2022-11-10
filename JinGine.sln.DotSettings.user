@@ -1,9 +1,5 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=50920635_002Dc0af_002D4a45_002D895d_002Dcf89de0eca11/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="File_name_is_expanded" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::5A4763E7-2278-4834-AB1E-EE8803FE6C90::net6.0::JinGine.App.Tests.Handlers.OpenBinaryFileCommandHandlerTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
+	
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=JinGine_002EWinForms_002FDataGrid/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=JinGine_002EWinForms_002FEditor/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=JinGine_002EWinForms_002FEditorTextViewer/@EntryIndexedValue">True</s:Boolean>

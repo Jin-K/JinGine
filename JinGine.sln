@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.App", "JinGine.App\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.App.Tests", "JinGine.App.Tests\JinGine.App.Tests.csproj", "{5A4763E7-2278-4834-AB1E-EE8803FE6C90}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Domain.Tests", "JinGine.Domain.Tests\JinGine.Domain.Tests.csproj", "{3481896E-1FA6-4957-B3E3-8B81C2703FB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Infra.Tests", "JinGine.Infra.Tests\JinGine.Infra.Tests.csproj", "{46164AF7-A307-4CBA-81E7-305AFBE0F34E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{5A4763E7-2278-4834-AB1E-EE8803FE6C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A4763E7-2278-4834-AB1E-EE8803FE6C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A4763E7-2278-4834-AB1E-EE8803FE6C90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3481896E-1FA6-4957-B3E3-8B81C2703FB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3481896E-1FA6-4957-B3E3-8B81C2703FB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3481896E-1FA6-4957-B3E3-8B81C2703FB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3481896E-1FA6-4957-B3E3-8B81C2703FB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
