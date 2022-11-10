@@ -1,12 +1,9 @@
 using System.Data;
+using JinGine.App.Commands;
+using JinGine.App.Events;
 using JinGine.Domain.Models;
-using JinGine.Infra.Serialization;
-using JinGine.Infra.Serialization.Strategies;
-using JinGine.Infra.Services;
 using JinGine.WinForms.Controls;
-using JinGine.WinForms.Properties;
 using JinGine.WinForms.Views;
-using JinGine.WinForms.Views.Models;
 
 namespace JinGine.WinForms.Presenters;
 
@@ -14,44 +11,56 @@ internal class MainPresenter
 {
     private readonly IMainView _mainView;
 
-    internal MainPresenter(IMainView mainView)
+    internal MainPresenter(
+        IMainView mainView,
+        MainMenuFactory menuFactory,
+        IEventAggregator eventAggregator)
     {
         _mainView = mainView;
-        _mainView.ClickedOpenFile += OnClickOpenFile;
-    }
-    
-    private void OnClickOpenFile(object? sender, ClickOpenFileEventArgs args)
-    {
-        var fileName = FileManager.ExpandPath(Path.Combine(Settings.Default.FilesPath, args.FileName));
 
-        switch (args.FileType)
+        eventAggregator.Subscribe<UpdateStatusBarInfoEvent>(@event => _mainView.StatusBar.Info = @event.Info);
+        eventAggregator.Subscribe<LoadFileDataEvent>(OnLoadFileDataEvent);
+        
+        CreateAndSetMenuItems(menuFactory);
+    }
+
+    private void CreateAndSetMenuItems(MainMenuFactory menuFactory)
+    {
+        var menuDefs = new MenuItemDef[]
         {
-            case FileType.DataTable:
+            ("File", null, null, new MenuItemDef[]
             {
-                using var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                var serializer = new StrategySerializer(new BinaryStreamStrategy(fs));
-                var data = serializer.Deserialize<DataTable>();
-                
-                var model = new DataGridModel(data);
+                ("Open file 1", "Open file 1 operations", null, new MenuItemDef[]
+                {
+                    ("Open file 1 A", "Open file 1 A for real", new OpenBinaryFileCommand("File1A.bin"), null),
+                    ("Open file 1 B", "Open file 1 B for real", new OpenCSharpFileCommand("File1A.bin"), null)
+                }),
+                ("Open file 2", "Open file 2 operations", null, null)
+            })
+        };
+        _mainView.SetMenuItems(menuFactory.CreateItems(menuDefs));
+    }
+
+    private void OnLoadFileDataEvent(LoadFileDataEvent @event)
+    {
+        switch (@event.FileData)
+        {
+            case DataTable dt:
+            {
+                var model = new DataGridModel(dt);
                 var view = new DataGrid();
                 view.Tag = new DataGridPresenter(view, model);
-
-                _mainView.ShowInNewTab(fileName, view);
-                return;
+                _mainView.ShowInNewTab(@event.FileName, view);
+                break;
             }
-            case FileType.CSharp:
+            case Editor2DText editor2DText:
             {
-                if (FileManager.IsUrl(fileName) is not true)
-                    FileManager.AskCreateFileIfNotFound(fileName);
-                
-                var view = new Editor { Dock = DockStyle.Fill };
-                view.Tag = new EditorPresenter(view, fileName);
-
-                _mainView.ShowInNewTab(fileName, view);
-                return;
+                var view = new Editor();
+                view.Tag = new EditorPresenter(view, editor2DText);
+                _mainView.ShowInNewTab(@event.FileName, view);
+                break;
             }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(args), string.Format(ExceptionMessages.MainPresenter_FileType_is_not_supported_, nameof(args.FileType)));
+            default: throw new SystemException($"Unknown type {@event.FileData.GetType().FullName}");
         }
     }
 }

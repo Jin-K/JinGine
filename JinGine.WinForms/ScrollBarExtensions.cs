@@ -2,9 +2,9 @@
 
 namespace JinGine.WinForms;
 
-public static class ScrollBarExtensions
+internal static class ScrollBarExtensions
 {
-    public static void InvokeMouseWheel(this ScrollBar scrollBar, int delta)
+    internal static void InvokeMouseWheel(this ScrollBar scrollBar, int delta)
     {
         const ushort wmMousewheel = 0x020a; // WM_MOUSEWHEEL
         const ushort mkLbutton = 0x0001; // MK_LBUTTON

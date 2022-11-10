@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JinGine.Domain\JinGine.Domain.csproj" />
+    <ProjectReference Include="..\JinGine.App\JinGine.App.csproj" />
     <ProjectReference Include="..\JinGine.Infra\JinGine.Infra.csproj" />
   </ItemGroup>
 

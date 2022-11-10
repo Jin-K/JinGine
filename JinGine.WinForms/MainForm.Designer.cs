@@ -30,49 +30,49 @@ namespace JinGine.WinForms
         /// </summary>
         private void InitializeComponent()
         {
-            this.statusBar = new StatusBar();
-            this.tabsControl = new System.Windows.Forms.TabControl();
-            this.menuStrip = new System.Windows.Forms.MenuStrip();
+            this._statusBar = new JinGine.WinForms.Controls.StatusBar();
+            this._tabsControl = new System.Windows.Forms.TabControl();
+            this._menuStrip = new System.Windows.Forms.MenuStrip();
             this.SuspendLayout();
             // 
-            // statusBar
+            // _statusBar
             // 
-            this.statusBar.BackColor = System.Drawing.SystemColors.Control;
-            this.statusBar.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.statusBar.Location = new System.Drawing.Point(0, 421);
-            this.statusBar.Name = "statusBar";
-            this.statusBar.Padding = new System.Windows.Forms.Padding(35, 3, 3, 3);
-            this.statusBar.Size = new System.Drawing.Size(800, 29);
-            this.statusBar.TabIndex = 0;
+            this._statusBar.BackColor = System.Drawing.SystemColors.Control;
+            this._statusBar.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this._statusBar.Location = new System.Drawing.Point(0, 421);
+            this._statusBar.Name = "_statusBar";
+            this._statusBar.Padding = new System.Windows.Forms.Padding(35, 3, 3, 3);
+            this._statusBar.Size = new System.Drawing.Size(800, 29);
+            this._statusBar.TabIndex = 0;
             // 
-            // tabsControl
+            // _tabsControl
             // 
-            this.tabsControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabsControl.Location = new System.Drawing.Point(0, 24);
-            this.tabsControl.Margin = new System.Windows.Forms.Padding(0);
-            this.tabsControl.Name = "tabsControl";
-            this.tabsControl.Padding = new System.Drawing.Point(0, 0);
-            this.tabsControl.SelectedIndex = 0;
-            this.tabsControl.Size = new System.Drawing.Size(800, 397);
-            this.tabsControl.TabIndex = 0;
+            this._tabsControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._tabsControl.Location = new System.Drawing.Point(0, 24);
+            this._tabsControl.Margin = new System.Windows.Forms.Padding(0);
+            this._tabsControl.Name = "_tabsControl";
+            this._tabsControl.Padding = new System.Drawing.Point(0, 0);
+            this._tabsControl.SelectedIndex = 0;
+            this._tabsControl.Size = new System.Drawing.Size(800, 397);
+            this._tabsControl.TabIndex = 0;
             // 
-            // menuStrip
+            // _menuStrip
             // 
-            this.menuStrip.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(800, 24);
-            this.menuStrip.TabIndex = 1;
-            this.menuStrip.Text = "menuStrip1";
+            this._menuStrip.Location = new System.Drawing.Point(0, 0);
+            this._menuStrip.Name = "_menuStrip";
+            this._menuStrip.Size = new System.Drawing.Size(800, 24);
+            this._menuStrip.TabIndex = 1;
+            this._menuStrip.Text = "menuStrip1";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.tabsControl);
-            this.Controls.Add(this.menuStrip);
-            this.Controls.Add(this.statusBar);
-            this.MainMenuStrip = this.menuStrip;
+            this.Controls.Add(this._tabsControl);
+            this.Controls.Add(this._menuStrip);
+            this.Controls.Add(this._statusBar);
+            this.MainMenuStrip = this._menuStrip;
             this.Name = "MainForm";
             this.Text = "MainWindow";
             this.ResumeLayout(false);
@@ -81,8 +81,8 @@ namespace JinGine.WinForms
         }
 
         #endregion
-        private StatusBar statusBar;
-        private TabControl tabsControl;
-        private MenuStrip menuStrip;
+        private StatusBar _statusBar;
+        private TabControl _tabsControl;
+        private MenuStrip _menuStrip;
     }
 }

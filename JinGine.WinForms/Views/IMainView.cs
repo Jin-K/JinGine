@@ -4,7 +4,9 @@ namespace JinGine.WinForms.Views;
 
 internal interface IMainView
 {
-    event EventHandler<ClickOpenFileEventArgs> ClickedOpenFile;
+    IStatusBarView StatusBar { get; }
+
+    void SetMenuItems(ToolStripItem[] items);
 
     void ShowInNewTab(string name, Control control);
 }

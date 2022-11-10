@@ -77,14 +77,5 @@ namespace JinGine.WinForms {
                 return ResourceManager.GetString("MainPresenter_Cannot_Handle_Type", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} is not supported..
-        /// </summary>
-        internal static string MainPresenter_FileType_is_not_supported_ {
-            get {
-                return ResourceManager.GetString("MainPresenter_FileType_is_not_supported_", resourceCulture);
-            }
-        }
     }
 }

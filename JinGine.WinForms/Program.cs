@@ -1,30 +1,46 @@
+using JinGine.App;
+using JinGine.App.Commands;
+using JinGine.App.Events;
+using JinGine.App.Handlers;
+using JinGine.App.Serialization;
+using JinGine.Infra.Serialization;
+using JinGine.Infra.Services;
 using JinGine.WinForms.Presenters;
+using JinGine.WinForms.Properties;
+using Unity;
 
-namespace JinGine.WinForms
+namespace JinGine.WinForms;
+
+internal static class Program
 {
-    internal static class Program
+    /// <summary>
+    ///  The main entry point for the application.
+    /// </summary>
+    [STAThread]
+    public static void Main()
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        public static void Main()
-        {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
+        // To customize application configuration such as set high DPI settings or default font,
+        // see https://aka.ms/applicationconfiguration.
+        ApplicationConfiguration.Initialize();
 
-            var view = new MainForm();
+        var view = new MainForm();
 
-            //var container = new UnityContainer()
-            //    .RegisterInstance<IMainView>(view, InstanceLifetime.Singleton)
-            //    .RegisterType<MainPresenter>(TypeLifetime.Singleton);
+        var container = new UnityContainer()
+            .RegisterInstance(new AppSettings(Settings.Default.FilesPath), InstanceLifetime.Singleton)
+            .RegisterInstance<IEventAggregator>(EventAggregator.Instance, InstanceLifetime.Singleton)
+            .RegisterSingleton<IFileManager, FileManagerFacade>()
+            .RegisterSingleton<ICommandHandler<OpenBinaryFileCommand>, OpenBinaryFileCommandHandler>()
+            .RegisterSingleton<ICommandHandler<OpenCSharpFileCommand>, OpenCSharpFileCommandHandler>()
+            .RegisterSingleton<ICommandDispatcher, CommandDispatcher>()
+            .RegisterSingleton<MainMenuFactory>()
+            .RegisterSingleton<IBinaryFileSerializer, BinaryFileSerializer>()
+            .AddExtension(new Diagnostic());
 
-            //var _ = container.Resolve<MainPresenter>();
 
-            var _ = new MainPresenter(view);
+        var menuFactory = container.Resolve<MainMenuFactory>();
+        var eventAggregator = container.Resolve<IEventAggregator>();
+        view.Tag = new MainPresenter(view, menuFactory, eventAggregator);
 
-            Application.Run(view);
-        }
+        Application.Run(view);
     }
 }

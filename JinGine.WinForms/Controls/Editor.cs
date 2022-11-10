@@ -32,7 +32,11 @@ public partial class Editor : UserControl, IEditorView
         remove => _editorTextViewer.KeyPressed -= value;
     }
 
-    public Editor() => InitializeComponent();
+    public Editor()
+    {
+        InitializeComponent();
+        base.Dock = DockStyle.Fill;
+    }
 
     public void SetLines(string[] textLines) => _editorTextViewer.SetLines(textLines);
 
