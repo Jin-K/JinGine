@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace JinGine.App.Events;
 
-public sealed class EventAggregator : IDisposable
+public sealed class EventAggregator : IEventAggregator, IDisposable
 {
     // TODO compare/benchmark IList & IList<object>
     private readonly ConcurrentDictionary<Type, IList> _subscriptions = new();
@@ -12,13 +12,13 @@ public sealed class EventAggregator : IDisposable
 
     private EventAggregator() { }
 
-    public void Publish<T>(T message)
+    public void Publish<T>(T @event)
     {
         if (_subscriptions.TryGetValue(typeof(T), out var subscribers) is false) return;
 
         // TODO compare/benchmark ArrayList.GetEnumerator() vs List<object>.GetEnumerator()
         foreach (Action<T> subscriber in subscribers)
-            subscriber(message);
+            subscriber(@event);
     }
 
     public void Subscribe<T>(Action<T> action)

@@ -5,10 +5,10 @@ namespace JinGine.WinForms;
 
 internal class MainMenuFactory // TODO move to infra ?
 {
-    private readonly EventAggregator _eventAggregator;
+    private readonly IEventAggregator _eventAggregator;
     private readonly ICommandDispatcher _commandDispatcher;
 
-    public MainMenuFactory(EventAggregator eventAggregator, ICommandDispatcher commandDispatcher)
+    public MainMenuFactory(IEventAggregator eventAggregator, ICommandDispatcher commandDispatcher)
     {
         _eventAggregator = eventAggregator;
         _commandDispatcher = commandDispatcher;

@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization.Formatters.Binary;
 using JinGine.App.Commands;
 using JinGine.App.Events;
 
@@ -8,11 +8,16 @@ public class OpenBinaryFileCommandHandler : ICommandHandler<OpenBinaryFileComman
 {
     private readonly IFileManager _fileManager;
     private readonly AppSettings _settings;
+    private readonly IEventAggregator _eventAggregator;
 
-    public OpenBinaryFileCommandHandler(IFileManager fileManager, AppSettings settings)
+    public OpenBinaryFileCommandHandler(
+        IFileManager fileManager,
+        AppSettings settings,
+        IEventAggregator eventAggregator)
     {
         _fileManager = fileManager;
         _settings = settings;
+        _eventAggregator = eventAggregator;
     }
 
     public void Handle(OpenBinaryFileCommand command)
@@ -23,6 +28,6 @@ public class OpenBinaryFileCommandHandler : ICommandHandler<OpenBinaryFileComman
         var data = formatter.Deserialize(fs);
         fs.Close();
 
-        EventAggregator.Instance.Publish(new LoadFileDataEvent(data, filePath));
+        _eventAggregator.Publish(new LoadFileDataEvent(data, command.FileName));
     }
 }
