@@ -1,6 +1,5 @@
 ﻿using JinGine.Domain.Models;
 using JinGine.Domain.Services;
-using JinGine.Infra.Services;
 using JinGine.WinForms.Views;
 
 namespace JinGine.WinForms.Presenters;
@@ -12,10 +11,10 @@ internal class EditorPresenter
     private readonly Editor2DTextWriter _writer;
     private readonly Editor2DTextReader _reader;
 
-    internal EditorPresenter(IEditorView view, string fileName)
+    internal EditorPresenter(IEditorView view, Editor2DText model)
     {
         _view = view;
-        _model = new Editor2DText(FileManager.GetTextContent(fileName));
+        _model = model;
         _writer = new Editor2DTextWriter(_model);
         _reader = new Editor2DTextReader(_model);
 

@@ -1,8 +1,8 @@
 ﻿namespace JinGine.WinForms;
 
-public static class UserControlExtensions
+internal static class UserControlExtensions
 {
-    public static void InitArrowKeyDownFiring(this UserControl userControl)
+    internal static void InitArrowKeyDownFiring(this UserControl userControl)
     {
         userControl.PreviewKeyDown += (_, e) =>
         {
@@ -11,7 +11,7 @@ public static class UserControlExtensions
         };
     }
 
-    public static void InitMouseWheelScrollDelegation(this UserControl userControl, VScrollBar vScrollBar) =>
+    internal static void InitMouseWheelScrollDelegation(this UserControl userControl, VScrollBar vScrollBar) =>
         userControl.MouseWheel += (_, e) =>
             vScrollBar.InvokeMouseWheel(e.Delta * SystemInformation.MouseWheelScrollLines);
 }

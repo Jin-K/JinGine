@@ -5,9 +5,11 @@ VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.WinForms", "JinGine.WinForms\JinGine.WinForms.csproj", "{4BBB491C-AF3B-4BA6-9A88-BA36C7CF14BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Domain", "JinGine.Domain\JinGine.Domain.csproj", "{12A305C6-AD25-4F4F-A4B5-E80460931409}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Domain", "JinGine.Domain\JinGine.Domain.csproj", "{12A305C6-AD25-4F4F-A4B5-E80460931409}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Infra", "JinGine.Infra\JinGine.Infra.csproj", "{72801859-DF66-4155-8A73-60C7D6FE32FE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.App", "JinGine.App\JinGine.App.csproj", "{A1FF918C-B8C7-4174-834E-A73EBC5653A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72801859-DF66-4155-8A73-60C7D6FE32FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1FF918C-B8C7-4174-834E-A73EBC5653A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1FF918C-B8C7-4174-834E-A73EBC5653A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1FF918C-B8C7-4174-834E-A73EBC5653A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1FF918C-B8C7-4174-834E-A73EBC5653A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
