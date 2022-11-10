@@ -14,29 +14,29 @@ namespace JinGine.App.Tests.Handlers
         private const string FileName = "TheCoolestFileOnEarth.bin";
 
         private readonly AutoMocker _autoMocker;
+        private readonly object _expectedDeserializeResult;
         private readonly ICommandHandler<OpenBinaryFileCommand> _sut;
 
         public OpenBinaryFileCommandHandlerTests()
         {
             _autoMocker = new AutoMocker();
-            
-            var fileManagerMock = _autoMocker.GetMock<IFileManager>();
-            fileManagerMock
+            _expectedDeserializeResult = new object();
+
+            _autoMocker.GetMock<IFileManager>()
                 .Setup(x => x.ExpandPath(It.IsAny<string>()))
                 .Returns($"C:\\{FileName}");
             
-            var serializerMock = _autoMocker.GetMock<IBinaryFileSerializer>();
-            serializerMock
+            _autoMocker.GetMock<IBinaryFileSerializer>()
                 .Setup(x => x.Deserialize(It.IsAny<string>()))
-                .Returns(new object());
+                .Returns(_expectedDeserializeResult);
 
-            var eventAggregatorMock = _autoMocker.GetMock<IEventAggregator>(true);
+            _autoMocker.GetMock<IEventAggregator>(true);
             
             _sut = new OpenBinaryFileCommandHandler(
-                fileManagerMock.Object,
-                serializerMock.Object,
+                _autoMocker.Get<IFileManager>(),
+                _autoMocker.Get<IBinaryFileSerializer>(),
                 new AppSettings(string.Empty),
-                eventAggregatorMock.Object);
+                _autoMocker.Get<IEventAggregator>());
         }
 
         [Fact]
@@ -84,7 +84,8 @@ namespace JinGine.App.Tests.Handlers
             // Assert
             eventAggregatorMock.Verify(x =>
                 x.Publish(It.Is<LoadFileDataEvent>(@event =>
-                    @event.FileName.Equals(FileName))), Times.Once);
+                    @event.FileName.Equals(FileName) &&
+                    @event.FileData.Equals(_expectedDeserializeResult))), Times.Once);
         }
     }
 }
