@@ -2,6 +2,8 @@ using JinGine.App;
 using JinGine.App.Commands;
 using JinGine.App.Events;
 using JinGine.App.Handlers;
+using JinGine.App.Serialization;
+using JinGine.Infra.Serialization;
 using JinGine.Infra.Services;
 using JinGine.WinForms.Presenters;
 using JinGine.WinForms.Properties;
@@ -31,6 +33,7 @@ internal static class Program
             .RegisterSingleton<ICommandHandler<OpenCSharpFileCommand>, OpenCSharpFileCommandHandler>()
             .RegisterSingleton<ICommandDispatcher, CommandDispatcher>()
             .RegisterSingleton<MainMenuFactory>()
+            .RegisterSingleton<IBinaryFileSerializer, BinaryFileSerializer>()
             .AddExtension(new Diagnostic());
 
 
