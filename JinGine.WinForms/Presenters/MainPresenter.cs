@@ -11,7 +11,10 @@ internal class MainPresenter
 {
     private readonly IMainView _mainView;
 
-    internal MainPresenter(IMainView mainView, MainMenuFactory menuFactory, IEventAggregator eventAggregator)
+    internal MainPresenter(
+        IMainView mainView,
+        MainMenuFactory menuFactory,
+        IEventAggregator eventAggregator)
     {
         _mainView = mainView;
 
