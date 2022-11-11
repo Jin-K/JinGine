@@ -7,10 +7,10 @@ namespace JinGine.Domain.Tests.Entities
     public class EditorFileTests
     {
         [Fact]
-        public void New_editor_file_without_path_should_have_empty_content()
+        public void New_prepared_editor_file_should_have_no_content()
         {
             // Act
-            var editorFile = new EditorFile();
+            var editorFile = EditorFile.PrepareNew();
             
             // Assert
             editorFile.Path.Should().BeNull();
@@ -18,17 +18,17 @@ namespace JinGine.Domain.Tests.Entities
         }
 
         [Fact]
-        public void New_editor_file_with_path_and_content_should_have_same_content()
+        public void Editor_file_created_from_physical_file_with_content_should_have_path_and_content()
         {
             // Arrange
-            const string expectedContent = "cool content";
+            var physicalFile = new PhysicalTextFile("c:\\aCoolFile.txt", "cool content");
 
             // Act
-            var editorFile = new EditorFile("c:\\aCoolFile.txt", expectedContent);
+            var editorFile = EditorFile.CreateFrom(physicalFile); // TODO is it a bad practice passing a value object to an entity constructor/factory method ?
 
             // Assert
             editorFile.Path.Should().NotBeNull();
-            editorFile.Content.Should().Be(expectedContent);
+            editorFile.Content.Should().Be(physicalFile.Content);
         }
     }
 }
