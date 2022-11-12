@@ -2,33 +2,31 @@
 using JinGine.Domain.Models;
 using Xunit;
 
-namespace JinGine.Domain.Tests.Entities
+namespace JinGine.Domain.Tests.Entities;
+
+public class EditorFileTests
 {
-    public class EditorFileTests
+    [Fact]
+    public void Prepared_EditorFile_should_have_no_path_or_content()
     {
-        [Fact]
-        public void New_prepared_editor_file_should_have_no_content()
-        {
-            // Act
-            var editorFile = EditorFile.PrepareNew();
+        // Act
+        var editorFile = EditorFile.PrepareNew();
             
-            // Assert
-            editorFile.Path.Should().BeNull();
-            editorFile.Content.Should().BeEmpty();
-        }
+        // Assert
+        editorFile.Path.Should().BeNull();
+        editorFile.Content.Should().Be(FileContent.Empty);
+    }
 
-        [Fact]
-        public void Editor_file_created_from_physical_file_with_content_should_have_path_and_content()
-        {
-            // Arrange
-            var physicalFile = new PhysicalTextFile("c:\\aCoolFile.txt", "cool content");
+    [Fact]
+    public void EditorFile_opened_from_physical_file_should_have_path()
+    {
+        // Arrange
+        var physicalFile = new PhysicalFile("c:\\aCoolFile.txt", string.Empty);
 
-            // Act
-            var editorFile = EditorFile.CreateFrom(physicalFile); // TODO is it a bad practice passing a value object to an entity constructor/factory method ?
+        // Act
+        var editorFile = EditorFile.OpenFrom(physicalFile); // TODO is it a bad practice passing a value object to an entity constructor/factory method ?
 
-            // Assert
-            editorFile.Path.Should().NotBeNull();
-            editorFile.Content.Should().Be(physicalFile.Content);
-        }
+        // Assert
+        editorFile.Path.Should().NotBeNull();
     }
 }

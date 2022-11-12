@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using JinGine.App.Events;
 
-namespace JinGine.App.Events;
+namespace JinGine.Infra;
 
 public sealed class EventAggregator : IEventAggregator, IDisposable
 {

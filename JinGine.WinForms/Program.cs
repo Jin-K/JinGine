@@ -3,6 +3,7 @@ using JinGine.App.Commands;
 using JinGine.App.Events;
 using JinGine.App.Handlers;
 using JinGine.App.Serialization;
+using JinGine.Infra;
 using JinGine.Infra.Serialization;
 using JinGine.Infra.Services;
 using JinGine.WinForms.Presenters;
@@ -35,7 +36,6 @@ internal static class Program
             .RegisterSingleton<MainMenuFactory>()
             .RegisterSingleton<IBinaryFileSerializer, BinaryFileSerializer>()
             .AddExtension(new Diagnostic());
-
 
         var menuFactory = container.Resolve<MainMenuFactory>();
         var eventAggregator = container.Resolve<IEventAggregator>();

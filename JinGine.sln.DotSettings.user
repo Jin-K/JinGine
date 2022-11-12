@@ -2,6 +2,8 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6df285a3_002D6a5d_002D442e_002D95b3_002D43f6779c3c1a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="EditorFileTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.Entities.EditorFileTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.Entities.FileContentTests.FileContent_has_always_at_least_1_line&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.Entities.FileContentTests.FileContent_created_from_content_with_any_line_terminators_should_have_expected_number_of_lines&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
