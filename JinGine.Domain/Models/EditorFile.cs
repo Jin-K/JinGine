@@ -8,7 +8,7 @@ public class EditorFile : Entity<string>
     private EditorFile(string? path, string content) : base(path ?? string.Empty)
     {
         Path = path;
-        Content = new FileContent(content);
+        Content = FileContent.CreateFromRawContent(content);
     }
 
     public static EditorFile OpenFrom(PhysicalFile textFile) => new(textFile.Path, textFile.TextContent);

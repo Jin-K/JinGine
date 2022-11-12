@@ -1,31 +1,19 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Primitives;
 
 namespace JinGine.Domain.Models;
 
 // value object
-public readonly struct TextLines : IReadOnlyCollection<StringSegment>, IEquatable<TextLines>
+public readonly record struct TextLine
 {
-    private readonly IList<StringSegment> _lines;
+    private readonly StringSegment _segment;
 
-    public int Count => _lines.Count;
+    public TextLine(StringSegment segment) => _segment = segment;
 
-    public TextLines(IList<StringSegment> lines) : this() => _lines = lines;
+    public int OffsetInText => _segment.Offset;
 
-    public IEnumerator<StringSegment> GetEnumerator() => _lines.GetEnumerator();
+    public int Length => _segment.Length;
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public override string ToString() => _segment.ToString();
 
-    public override bool Equals(object? obj) => obj is TextLines other && Equals(other);
-
-    public bool Equals(TextLines other) => _lines.SequenceEqual(other);
-
-    public override int GetHashCode() => _lines.GetHashCode();
-
-    public static bool operator ==(TextLines left, TextLines right) => left.Equals(right);
-
-    public static bool operator !=(TextLines left, TextLines right) => !(left == right);
+    public static implicit operator TextLine(StringSegment segment) => new(segment);
 }

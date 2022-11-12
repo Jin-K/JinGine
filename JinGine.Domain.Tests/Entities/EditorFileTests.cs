@@ -14,7 +14,8 @@ public class EditorFileTests
             
         // Assert
         editorFile.Path.Should().BeNull();
-        editorFile.Content.Should().Be(FileContent.Empty);
+        editorFile.Content.IsEmpty.Should().BeTrue();
+        editorFile.Content.Should().BeEquivalentTo(FileContent.Empty);
     }
 
     [Fact]
