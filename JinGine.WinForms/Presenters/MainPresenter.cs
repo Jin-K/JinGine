@@ -53,10 +53,10 @@ internal class MainPresenter
                 _mainView.ShowInNewTab(@event.FileName, view);
                 break;
             }
-            case Editor2DText editor2DText:
+            case EditorFile editorFile:
             {
                 var view = new Editor();
-                view.Tag = new EditorPresenter(view, editor2DText);
+                view.Tag = new EditorPresenter(view, editorFile);
                 _mainView.ShowInNewTab(@event.FileName, view);
                 break;
             }

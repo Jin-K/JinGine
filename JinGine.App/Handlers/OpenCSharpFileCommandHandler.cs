@@ -1,6 +1,5 @@
 ﻿using JinGine.App.Commands;
 using JinGine.App.Events;
-using JinGine.Domain.Models;
 
 namespace JinGine.App.Handlers;
 
@@ -27,7 +26,7 @@ public class OpenCSharpFileCommandHandler : ICommandHandler<OpenCSharpFileComman
         if (_fileManager.IsUrl(fileName) is not true)
             _fileManager.AskCreateFileIfNotFound(fileName);
 
-        var data = new Editor2DText(_fileManager.GetTextContent(fileName));
+        var data = _fileManager.CreateEditorFile(fileName);
 
         _eventAggregator.Publish(new LoadFileDataEvent(data, fileName));
     }

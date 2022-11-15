@@ -22,12 +22,26 @@ public class EditorFileTests
     public void EditorFile_opened_from_physical_file_should_have_path()
     {
         // Arrange
-        var physicalFile = new PhysicalFile("c:\\aCoolFile.txt", string.Empty);
+        var path = "c:\\aCoolFile.txt";
+        var textContent = string.Empty;
 
         // Act
-        var editorFile = EditorFile.OpenFrom(physicalFile); // TODO is it a bad practice passing a value object to an entity constructor/factory method ?
+        var editorFile = EditorFile.OpenFromPhysicalFile(path, textContent);
 
         // Assert
-        editorFile.Path.Should().NotBeNull();
+        editorFile.Path.Should().NotBeNull().And.Be(path);
+    }
+
+    [Fact]
+    public void EditorFile_TextContent_can_be_reset()
+    {
+        // Arrange
+        var editorFile = EditorFile.PrepareNew();
+
+        // Act
+        var act = () => editorFile.ResetTextContent("something else");
+
+        // Assert
+        act.Should().NotThrow();
     }
 }

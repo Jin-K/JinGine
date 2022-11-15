@@ -7,6 +7,11 @@
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Adding_a_line_should_increase_number_of_lines_of_1&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Adding_a_line_should_create_a_text_line_at_the_end_with_position_in_text_plus_2&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Trying_to_create_a_FileContent_without_lines_should_throw_exception&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.FileContent_created_from_content_with_any_line_terminators_should_have_expected_number_of_lines&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Inserting_a_character_in_a_line_should_increase_that_line_length_of_1&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Inserting_char_c_at_first_line_and_column_index_8_should_set_char_c_at_index_8_of_FileContent&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Adding_a_line_should_create_a_text_line_at_the_end_with_position_in_text_plus_length_of_environment_new_line&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Lines_followed_by_other_lines_should_have_a_line_terminator&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using JinGine.WinForms.Views.Models;
+using Microsoft.Extensions.Primitives;
 using static System.Windows.Forms.TextFormatFlags;
 
 namespace JinGine.WinForms.Controls;
@@ -13,7 +14,7 @@ public partial class EditorTextViewer : UserControl
     private readonly CharsGrid _grid;
     private readonly Helpers.Win32Caret _caret;
     private readonly Selector _selector;
-    private string[] _lines;
+    private IReadOnlyList<StringSegment> _textLines;
     private Point? _mouseDownScreenPoint;
     private PaintZone _paintZone;
 
@@ -35,7 +36,7 @@ public partial class EditorTextViewer : UserControl
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
         _caret = new Helpers.Win32Caret(this) { Size = cellSize };
         _selector = new Selector();
-        _lines = Array.Empty<string>();
+        _textLines = Array.Empty<StringSegment>();
         CaretPoint = Point.Empty;
         TextSelection = TextSelectionRange.Empty;
         
@@ -46,10 +47,10 @@ public partial class EditorTextViewer : UserControl
         this.InitMouseWheelScrollDelegation(_vScrollBar);
     }
 
-    internal void SetLines(string[] lines)
+    internal void SetLines(IReadOnlyList<StringSegment> textLines)
     {
-        if (_lines.SequenceEqual(lines)) return;
-        _lines = lines;
+        if (_textLines.SequenceEqual(textLines)) return;
+        _textLines = textLines;
         Invalidate();
     }
 
@@ -137,12 +138,12 @@ public partial class EditorTextViewer : UserControl
                 else if (newCaretPoint.Y > 0)
                 {
                     newCaretPoint.Y--;
-                    newCaretPoint.X = _lines[newCaretPoint.Y].Length;
+                    newCaretPoint.X = _textLines[newCaretPoint.Y].Length;
                 }
                 break;
             case Keys.Right:
-                if (newCaretPoint.X < _lines[newCaretPoint.Y].Length) newCaretPoint.X++;
-                else if (newCaretPoint.Y + 1 < _lines.Length)
+                if (newCaretPoint.X < _textLines[newCaretPoint.Y].Length) newCaretPoint.X++;
+                else if (newCaretPoint.Y + 1 < _textLines.Count)
                 {
                     newCaretPoint.Y++;
                     newCaretPoint.X = 0;
@@ -152,14 +153,14 @@ public partial class EditorTextViewer : UserControl
                 if (newCaretPoint.Y > 0)
                 {
                     newCaretPoint.Y--;
-                    newCaretPoint.X = Math.Min(newCaretPoint.X, _lines[newCaretPoint.Y].Length);
+                    newCaretPoint.X = Math.Min(newCaretPoint.X, _textLines[newCaretPoint.Y].Length);
                 }
                 break;
             case Keys.Down:
-                if (newCaretPoint.Y + 1 < _lines.Length)
+                if (newCaretPoint.Y + 1 < _textLines.Count)
                 {
                     newCaretPoint.Y++;
-                    newCaretPoint.X = Math.Min(newCaretPoint.X, _lines[newCaretPoint.Y].Length);
+                    newCaretPoint.X = Math.Min(newCaretPoint.X, _textLines[newCaretPoint.Y].Length);
                 }
                 break;
         }
@@ -204,8 +205,8 @@ public partial class EditorTextViewer : UserControl
     private void OnMouseClick(object? sender, MouseEventArgs e)
     {
         var caretPoint = ClientToCoords(e.Location);
-        if (caretPoint.Y >= _lines.Length) return;
-        var line = _lines[caretPoint.Y];
+        if (caretPoint.Y >= _textLines.Count) return;
+        var line = _textLines[caretPoint.Y];
         if (caretPoint.X > line.Length) return;
         
         OnCaretPointChanged(caretPoint);
@@ -257,23 +258,18 @@ public partial class EditorTextViewer : UserControl
 
     private void OnPaint(object? sender, PaintEventArgs e)
     {
-        for (var y = _vScrollBar.Value; y < _lines.Length; y++)
+        var textLinesCount = _textLines.Count;
+        for (var y = _vScrollBar.Value; y < textLinesCount; y++)
         {
-            var line = _lines[y];
-            var visibleCols = Math.Min(_paintZone.VisibleColumnsCount, Math.Max(0, line.Length - _hScrollBar.Value));
-            
-            var startCharRect = CoordsToClientRect(_hScrollBar.Value, y);
-            var endCharRect = CoordsToClientRect(_hScrollBar.Value + visibleCols - 1, y);
-            var textRect = Rectangle.Union(startCharRect, endCharRect);
+            var textLine = _textLines[y];
+            var textLineLength = textLine.Length;
 
             if (_selector.IsLineSelected(y))
             {
                 var selectionStartX = y == _selector.Start.Y ? _selector.Start.X : 0;
                 var selectionEndX = y == _selector.End.Y
                     ? _selector.End.X
-                    : y == _lines.Length - 1
-                        ? line.Length - 1
-                        : line.Length;
+                    : y == textLinesCount - 1 ? textLineLength - 1 : textLineLength;
                 var selectionRect = Rectangle.Union(
                     CoordsToClientRect(selectionStartX, y),
                     CoordsToClientRect(selectionEndX, y));
@@ -286,8 +282,13 @@ public partial class EditorTextViewer : UserControl
                 }
             }
 
+            var visibleCols = Math.Min(_paintZone.VisibleColumnsCount, Math.Max(0, textLineLength - _hScrollBar.Value));
             if (visibleCols is 0) continue;
-            var text = line.AsSpan(_hScrollBar.Value, visibleCols);
+            
+            var startCharRect = CoordsToClientRect(_hScrollBar.Value, y);
+            var endCharRect = CoordsToClientRect(_hScrollBar.Value + visibleCols - 1, y);
+            var textRect = Rectangle.Union(startCharRect, endCharRect);
+            var text = textLine.AsSpan(_hScrollBar.Value, visibleCols);
             TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFormatFlags);
         }
     }
