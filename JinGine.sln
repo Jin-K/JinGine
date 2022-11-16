@@ -11,11 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Infra", "JinGine.In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.App", "JinGine.App\JinGine.App.csproj", "{A1FF918C-B8C7-4174-834E-A73EBC5653A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.App.Tests", "JinGine.App.Tests\JinGine.App.Tests.csproj", "{5A4763E7-2278-4834-AB1E-EE8803FE6C90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.App.Tests", "JinGine.App.Tests\JinGine.App.Tests.csproj", "{5A4763E7-2278-4834-AB1E-EE8803FE6C90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Domain.Tests", "JinGine.Domain.Tests\JinGine.Domain.Tests.csproj", "{3481896E-1FA6-4957-B3E3-8B81C2703FB9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Domain.Tests", "JinGine.Domain.Tests\JinGine.Domain.Tests.csproj", "{3481896E-1FA6-4957-B3E3-8B81C2703FB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Infra.Tests", "JinGine.Infra.Tests\JinGine.Infra.Tests.csproj", "{46164AF7-A307-4CBA-81E7-305AFBE0F34E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Infra.Tests", "JinGine.Infra.Tests\JinGine.Infra.Tests.csproj", "{46164AF7-A307-4CBA-81E7-305AFBE0F34E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Domain.Benchmark", "JinGine.Domain.Benchmark\JinGine.Domain.Benchmark.csproj", "{E323967E-FA8B-4302-BF73-6FC7121F61D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46164AF7-A307-4CBA-81E7-305AFBE0F34E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E323967E-FA8B-4302-BF73-6FC7121F61D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E323967E-FA8B-4302-BF73-6FC7121F61D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E323967E-FA8B-4302-BF73-6FC7121F61D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E323967E-FA8B-4302-BF73-6FC7121F61D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
