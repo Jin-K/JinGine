@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using JinGine.WinForms.Views;
 using JinGine.WinForms.Views.Models;
-using Microsoft.Extensions.Primitives;
 
 namespace JinGine.WinForms.Controls;
 
@@ -45,5 +44,5 @@ public partial class Editor : UserControl, IEditorView
         _editorTextViewer.CaretPoint = new Point(column - 1, line - 1);
     }
 
-    public void SetLines(IReadOnlyList<StringSegment> textLines) => _editorTextViewer.SetLines(textLines);
+    public void SetLines(IReadOnlyList<ArraySegment<char>> textLines) => _editorTextViewer.SetLines(textLines);
 }

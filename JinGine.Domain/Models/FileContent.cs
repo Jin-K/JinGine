@@ -2,71 +2,58 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Primitives;
 
 namespace JinGine.Domain.Models;
-
-public class FileTextLineComparer : IComparer<StringSegment>, IEqualityComparer<StringSegment>
-{
-    public static readonly FileTextLineComparer Default = new();
-
-    public int Compare(StringSegment x, StringSegment y) => x.Offset.CompareTo(y.Offset);
-    public bool Equals(StringSegment x, StringSegment y) => x == y && x.Offset == y.Offset;
-    public int GetHashCode(StringSegment obj) => (obj, obj.Offset).GetHashCode();
-}
 
 // value object
 public class FileContent : IReadOnlyList<char>, IEquatable<FileContent>
 {
-    private static readonly char[] LineTerminators = { '\r', '\n' };
-
     public static readonly FileContent Empty = new(string.Empty);
-
-    private readonly StringSegment[] _lines;
+    
+    private readonly ArraySegment<char>[] _textLines;
 
     public string TextContent { get; }
 
     public FileContent(string textContent)
     {
         TextContent = textContent;
-        _lines = CreateLines(textContent);
+        _textLines = CreateLineSegments(textContent.ToCharArray());
     }
 
-    public bool IsEmpty => _lines.Length is 1 && _lines[0].Length is 0;
-    
-    public IReadOnlyList<StringSegment> TextLines => _lines;
+    public bool IsEmpty => _textLines.Length is 1 && _textLines[0].Count is 0;
+
+    public IReadOnlyList<ArraySegment<char>> TextLines => Array.AsReadOnly(_textLines);
 
     public int Count => TextContent.Length;
 
     public char this[int index] => TextContent[index];
 
-    private static StringSegment[] CreateLines(string text)
+    private static ArraySegment<char>[] CreateLineSegments(char[] textChars)
     {
-        var res = new List<StringSegment>();
-        StringSegment textAsSegment = text;
+        var res = new List<ArraySegment<char>>();
+        var textCharsAsSegment = new ArraySegment<char>(textChars);
+        var textCharsAsSpan = new ReadOnlySpan<char>(textChars);
+        var length = textChars.Length;
 
-        var lineOffsetInText = 0;
-        while (lineOffsetInText <= text.Length)
+        for (var pos = 0; pos <= length;)
         {
-            var lineTerminatorIndex = text.IndexOfAny(LineTerminators, lineOffsetInText);
-            if (lineTerminatorIndex is not -1)
+            var indexOfLineTerminator = textCharsAsSpan.IndexOfAny('\r', '\n');
+            if (indexOfLineTerminator is not -1)
             {
-                var segmentStart = lineOffsetInText;
-                var segmentLength = lineTerminatorIndex - lineOffsetInText + 1;
-                lineOffsetInText = lineTerminatorIndex + 1;
-                if (text[lineTerminatorIndex] is '\r' &&
-                    lineTerminatorIndex + 1 < text.Length &&
-                    text[lineTerminatorIndex + 1] is '\n')
-                {
-                    lineOffsetInText++;
-                    segmentLength++;
-                }
-                var segment = textAsSegment.Subsegment(segmentStart, segmentLength);
+                if (textCharsAsSpan[indexOfLineTerminator] is '\r' &&
+                    indexOfLineTerminator + 1 < textCharsAsSpan.Length &&
+                    textCharsAsSpan[indexOfLineTerminator + 1] is '\n')
+                    indexOfLineTerminator++;
+
+                var segmentLength = indexOfLineTerminator + 1;
+                var segment = textCharsAsSegment.Slice(pos, segmentLength);
                 res.Add(segment);
+                pos += segmentLength;
+                textCharsAsSpan = textCharsAsSpan.Slice(segmentLength);
             }
             else
             {
-                var segment = textAsSegment.Subsegment(lineOffsetInText, text.Length - lineOffsetInText);
+                var segment = textCharsAsSegment.Slice(pos);
                 res.Add(segment);
                 break;
             }
@@ -79,7 +66,7 @@ public class FileContent : IReadOnlyList<char>, IEquatable<FileContent>
 
     public FileContent InsertChar(char value, int lineIndex, int columnIndex)
     {
-        var insertOffset = _lines[lineIndex].Offset + columnIndex;
+        var insertOffset = _textLines[lineIndex].Offset + columnIndex;
         var length = TextContent.Length + 1;
         var stateValueTuple = (TextContent, value, insertOffset);
         var textContent = string.Create(length, stateValueTuple, (span, valueTuple) =>
@@ -95,14 +82,13 @@ public class FileContent : IReadOnlyList<char>, IEquatable<FileContent>
 
     public override bool Equals(object? obj) => Equals(obj as FileContent);
 
-    public bool Equals(FileContent? other) =>
-        other is not null && _lines.SequenceEqual(other._lines, new FileTextLineComparer());
+    public bool Equals(FileContent? other) => other is not null && _textLines.SequenceEqual(other._textLines);
 
     public IEnumerator<char> GetEnumerator() => TextContent.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public override int GetHashCode() => _lines.GetHashCode();
+    public override int GetHashCode() => _textLines.GetHashCode();
 
     public static bool operator ==(FileContent left, FileContent right) => left.Equals(right);
 

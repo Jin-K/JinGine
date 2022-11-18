@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using FluentAssertions;
-using FluentAssertions.Equivalency;
 using JinGine.Domain.Models;
-using Microsoft.Extensions.Primitives;
 using Xunit;
 
 namespace JinGine.Domain.Tests.ValueObjects;
@@ -48,7 +46,7 @@ public class FileContentTests
 
         // Assert
         var addedLine = updatedFileContent.TextLines[^1];
-        fileContent.TextLines.Should().NotContainEquivalentOf(addedLine, SetTextLineEquivalencyOptions);
+        fileContent.TextLines.Should().NotContain(addedLine);
         addedLine.Offset.Should().Be(expectedPositionInText);
     }
 
@@ -85,13 +83,13 @@ public class FileContentTests
     {
         // Arrange
         var fileContent = new FileContent("Line1\r\nLine2\r\nLine3");
-        var expectedLineLength = fileContent.TextLines[1].Length + 1;
+        var expectedLineLength = fileContent.TextLines[1].Count + 1;
 
         // Act
         fileContent = fileContent.InsertChar('c', 1, 1);
 
         // Assert
-        fileContent.TextLines[1].Length.Should().Be(expectedLineLength, "we just inserted a char");
+        fileContent.TextLines[1].Should().HaveCount(expectedLineLength, "we just inserted a char");
     }
 
     [Fact]
@@ -117,12 +115,8 @@ public class FileContentTests
 
         // Assert
         fileContent.TextLines.SkipLast(1).Should().AllSatisfy(textLine =>
-            textLine.ToString().Should().Match(textLineContent =>
-                textLineContent.EndsWith('\r') || textLineContent.EndsWith('\n')));
+            textLine.Last().Should().Match<char>(@char => @char == '\r' || @char == '\n'));
     }
-
-    private static EquivalencyAssertionOptions<StringSegment> SetTextLineEquivalencyOptions(
-        EquivalencyAssertionOptions<StringSegment> opts) => opts.Using(new FileTextLineComparer());
 
     public static TheoryData<string, int, string?> TextContentWithNumberOfLinesData => new()
     {

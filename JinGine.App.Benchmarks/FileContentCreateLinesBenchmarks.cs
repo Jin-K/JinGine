@@ -1,12 +1,15 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System.Diagnostics.CodeAnalysis;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
-using static JinGine.Domain.Benchmark.TextContentSample;
+using static JinGine.App.Benchmarks.TextContentSample;
+// ReSharper disable UnusedMethodReturnValue.Local
 
-namespace JinGine.Domain.Benchmark;
+namespace JinGine.App.Benchmarks;
 
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 [RankColumn]
+[SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Needs to be non-static for BenchmarkDotNet")]
 public class FileContentCreateLinesBenchmarks
 {
     private static readonly char[] TextContentChars = Sample.ToCharArray();
@@ -20,8 +23,7 @@ public class FileContentCreateLinesBenchmarks
     [Benchmark]
     public void CreateLinesWithDoWhileAndIndexOfAnyOnSpan() =>
         CreateLinesWithDoWhileAndIndexOfAnyOnSpan(TextContentChars);
-
-    // ReSharper disable once UnusedMethodReturnValue.Local
+    
     private static ArraySegment<char>[] CreateLinesWithForAndCounters(char[] textChars)
     {
         var res = new List<ArraySegment<char>>();
@@ -54,8 +56,7 @@ public class FileContentCreateLinesBenchmarks
 
         return res.ToArray();
     }
-
-    // ReSharper disable once UnusedMethodReturnValue.Local
+    
     private static ArraySegment<char>[] CreateLinesWithForAndIndexOfAnyOnSpan(char[] textChars)
     {
         var res = new List<ArraySegment<char>>();
@@ -89,8 +90,7 @@ public class FileContentCreateLinesBenchmarks
 
         return res.ToArray();
     }
-
-    // ReSharper disable once UnusedMethodReturnValue.Local
+    
     private static ArraySegment<char>[] CreateLinesWithDoWhileAndIndexOfAnyOnSpan(char[] textChars)
     {
         var res = new List<ArraySegment<char>>();

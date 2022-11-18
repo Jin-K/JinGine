@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
-using JinGine.Domain.Benchmark;
+using JinGine.App.Benchmarks;
 
-BenchmarkRunner.Run<FileContentCreateLinesBenchmarks>();
+//BenchmarkRunner.Run<FileContentCreateLinesBenchmarks>();
 BenchmarkRunner.Run<FileContentConvertToPrintableTextBenchmarks>();

@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Domain.Tests", "Jin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JinGine.Infra.Tests", "JinGine.Infra.Tests\JinGine.Infra.Tests.csproj", "{46164AF7-A307-4CBA-81E7-305AFBE0F34E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.Domain.Benchmark", "JinGine.Domain.Benchmark\JinGine.Domain.Benchmark.csproj", "{E323967E-FA8B-4302-BF73-6FC7121F61D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinGine.App.Benchmarks", "JinGine.App.Benchmarks\JinGine.App.Benchmarks.csproj", "{E323967E-FA8B-4302-BF73-6FC7121F61D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

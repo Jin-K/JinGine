@@ -1,5 +1,4 @@
 ﻿using JinGine.WinForms.Views.Models;
-using Microsoft.Extensions.Primitives;
 
 namespace JinGine.WinForms.Views;
 
@@ -11,5 +10,5 @@ internal interface IEditorView
     event EventHandler<Point> CaretPointChanged;
 
     void SetCaret(int line, int column, int offset);
-    void SetLines(IReadOnlyList<StringSegment> textLines);
+    void SetLines(IReadOnlyList<ArraySegment<char>> textLines);
 }

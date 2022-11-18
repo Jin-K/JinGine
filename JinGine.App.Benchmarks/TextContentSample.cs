@@ -1,4 +1,4 @@
-﻿namespace JinGine.Domain.Benchmark;
+﻿namespace JinGine.App.Benchmarks;
 
 internal static class TextContentSample
 {

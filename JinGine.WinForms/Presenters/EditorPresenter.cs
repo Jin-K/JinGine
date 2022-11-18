@@ -1,7 +1,7 @@
-﻿using System.Text;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 using JinGine.Domain.Models;
 using JinGine.WinForms.Views;
-using Microsoft.Extensions.Primitives;
 
 namespace JinGine.WinForms.Presenters;
 
@@ -79,34 +79,29 @@ internal class EditorPresenter
 
     private void SetLinesInView()
     {
-        var fileContent = _editorFile.Content;
-        // recreating a second potential big string :'(
-        // we could just reuse the original string AND text-lines if it was already formatted and that could
-        // maybe be done in the EditorFile entity but then we would lose the original chars coming from the file.
-        var printableTextContent = string.Create(fileContent.Count, fileContent.TextContent, ConvertToPrintableChars);
-
-        var textLines = fileContent.TextLines;
+        var textLines = _editorFile.Content.TextLines;
         var textLinesCount = textLines.Count;
-        var printableTextLines = new StringSegment[textLinesCount]; // a new array on the heap :'(
+        var printableChars = new char[_editorFile.Content.Count]; // TODO get from ArrayPool<char>.Shared.Rent and make this IDisposable to call ArrayPool<char>.Shared.Return() at the end
+        var printableTextLines = new ArraySegment<char>[textLinesCount];
+
         for (var i = 0; i < textLinesCount; i++)
         {
-            var oldSegment = textLines[i];
-            var newSegmentLength = oldSegment.Length;
-            var indexOfLineTerminator = oldSegment.AsSpan().IndexOfAny('\r', '\n');
-            if (indexOfLineTerminator is not -1) newSegmentLength = indexOfLineTerminator;
-            printableTextLines[i] = new StringSegment(printableTextContent, oldSegment.Offset, newSegmentLength);
+            var textLine = textLines[i];
+            printableTextLines[i] = new ArraySegment<char>(printableChars, textLine.Offset, textLine.Count);
+            CopyCharsOrReplaceUnprintable(textLine, printableTextLines[i]);
         }
-        
+
         _view.SetLines(printableTextLines);
     }
 
-    private static void ConvertToPrintableChars(Span<char> destSpan, string src)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CopyCharsOrReplaceUnprintable(ReadOnlySpan<char> srcSpan, Span<char> destSpan)
     {
-        src.CopyTo(destSpan);
-        var length = src.Length;
+        srcSpan.CopyTo(destSpan);
+        var length = srcSpan.Length;
         for (var i = 0; i < length; i++)
         {
-            var ch = src[i];
+            var ch = srcSpan[i];
             switch (ch)
             {
                 case (char)0: destSpan[i] = ','; continue;
