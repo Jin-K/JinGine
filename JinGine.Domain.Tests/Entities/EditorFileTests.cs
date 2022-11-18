@@ -23,10 +23,10 @@ public class EditorFileTests
     {
         // Arrange
         var path = "c:\\aCoolFile.txt";
-        var text = string.Empty;
+        var textResolver = () => string.Empty;
 
         // Act
-        var editorFile = EditorFile.OpenFromPhysicalFile(path, text);
+        var editorFile = EditorFile.OpenFromPath(path, textResolver);
 
         // Assert
         editorFile.Path.Should().NotBeNull().And.Be(path);

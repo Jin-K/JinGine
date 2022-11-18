@@ -13,7 +13,7 @@ public class EditorFile : Entity<string>
 
     public void ResetText(string text) => Content = new FileContent(text);
 
-    public static EditorFile OpenFromPhysicalFile(string path, string text) => new(path, text);
+    public static EditorFile OpenFromPath(string path, System.Func<string> textResolver) => new(path, textResolver());
 
     public static EditorFile PrepareNew() => new(null, string.Empty);
 }
