@@ -64,10 +64,10 @@ public static class FileManager
         return FileCache.TryGetCachedFile(fileName) is not null || File.Exists(fileName);
     }
 
-    public static string GetTextContent(string fileName, Encoding? encoding = null)
+    public static string GetText(string fileName, Encoding? encoding = null)
     {
         fileName = ExpandPath(fileName);
         if (IsUrl(fileName)) throw new NotImplementedException("TODO ??");
-        return FileCache.GetTextContent(fileName, encoding);
+        return FileCache.GetText(fileName, encoding);
     }
 }

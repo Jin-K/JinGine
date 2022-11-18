@@ -1,5 +1,4 @@
-﻿using System.Text;
-using JinGine.Domain.Models;
+﻿using JinGine.Domain.Models;
 
 namespace JinGine.App;
 

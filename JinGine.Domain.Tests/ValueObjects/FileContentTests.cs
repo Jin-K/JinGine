@@ -18,7 +18,7 @@ public class FileContentTests
         var fileContent = new FileContent(content);
 
         // Assert
-        fileContent.TextLines.Should().HaveCount(1);
+        fileContent.Lines.Should().HaveCount(1);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class FileContentTests
         fileContent = fileContent.AddLine();
 
         // Assert
-        fileContent.TextLines.Should().HaveCount(2);
+        fileContent.Lines.Should().HaveCount(2);
     }
 
     [Fact]
@@ -39,29 +39,29 @@ public class FileContentTests
     {
         // Arrange
         var fileContent = FileContent.Empty;
-        var expectedPositionInText = fileContent.TextLines[^1].Offset + Environment.NewLine.Length;
+        var expectedPositionInText = fileContent.Lines[^1].Offset + Environment.NewLine.Length;
 
         // Act
         var updatedFileContent = fileContent.AddLine();
 
         // Assert
-        var addedLine = updatedFileContent.TextLines[^1];
-        fileContent.TextLines.Should().NotContain(addedLine);
+        var addedLine = updatedFileContent.Lines[^1];
+        fileContent.Lines.Should().NotContain(addedLine);
         addedLine.Offset.Should().Be(expectedPositionInText);
     }
 
     [Theory]
-    [MemberData(nameof(TextContentWithNumberOfLinesData))]
+    [MemberData(nameof(TextWithNumberOfLinesData))]
     public void FileContent_text_content_with_line_terminators_should_have_expected_number_of_lines(
-        string textContent,
+        string text,
         int expectedLinesCount,
         string because = "")
     {
         // Act
-        var fileContent = new FileContent(textContent);
+        var fileContent = new FileContent(text);
 
         // Assert
-        fileContent.TextLines.Should().HaveCount(expectedLinesCount, because);
+        fileContent.Lines.Should().HaveCount(expectedLinesCount, because);
     }
 
     [Fact]
@@ -69,13 +69,13 @@ public class FileContentTests
     {
         // Arrange
         var fileContent = FileContent.Empty;
-        var expectedLength = fileContent.TextContent.Length + 1;
+        var expectedTextLength = fileContent.Text.Length + 1;
 
         // Act
         fileContent = fileContent.InsertChar(default, default, default);
 
         // Assert
-        fileContent.TextContent.Should().HaveLength(expectedLength);
+        fileContent.Text.Should().HaveLength(expectedTextLength);
     }
 
     [Fact]
@@ -83,13 +83,13 @@ public class FileContentTests
     {
         // Arrange
         var fileContent = new FileContent("Line1\r\nLine2\r\nLine3");
-        var expectedLineLength = fileContent.TextLines[1].Count + 1;
+        var expectedLineLength = fileContent.Lines[1].Count + 1;
 
         // Act
         fileContent = fileContent.InsertChar('c', 1, 1);
 
         // Assert
-        fileContent.TextLines[1].Should().HaveCount(expectedLineLength, "we just inserted a char");
+        fileContent.Lines[1].Should().HaveCount(expectedLineLength, "we just inserted a char");
     }
 
     [Fact]
@@ -108,17 +108,17 @@ public class FileContentTests
     [Theory]
     [InlineData("Line1\nLine2\r\nLine3")]
     [InlineData("Line1\rLine2\r\nLine3\n")]
-    public void Lines_followed_by_other_lines_should_have_a_line_terminator(string textContent)
+    public void Lines_followed_by_other_lines_should_have_a_line_terminator(string text)
     {
         // Act
-        var fileContent = new FileContent(textContent);
+        var fileContent = new FileContent(text);
 
         // Assert
-        fileContent.TextLines.SkipLast(1).Should().AllSatisfy(textLine =>
-            textLine.Last().Should().Match<char>(@char => @char == '\r' || @char == '\n'));
+        fileContent.Lines.SkipLast(1).Should().AllSatisfy(line =>
+            line.Last().Should().Match<char>(@char => @char == '\r' || @char == '\n'));
     }
 
-    public static TheoryData<string, int, string?> TextContentWithNumberOfLinesData => new()
+    public static TheoryData<string, int, string?> TextWithNumberOfLinesData => new()
     {
         { "\r\n\r\n\r\r\n\n", 6, "1 default begin line + 1 CRLF + 1 CRLF + 1 CR + 1 CRLF + 1 LF" },
         { "Line1\rLine2", 2, null },

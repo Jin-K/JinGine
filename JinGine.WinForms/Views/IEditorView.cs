@@ -10,5 +10,5 @@ internal interface IEditorView
     event EventHandler<Point> CaretPointChanged;
 
     void SetCaret(int line, int column, int offset);
-    void SetLines(IReadOnlyList<ArraySegment<char>> textLines);
+    void SetLines(IReadOnlyList<ArraySegment<char>> lines);
 }

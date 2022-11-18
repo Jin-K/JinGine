@@ -1,6 +1,6 @@
 ﻿namespace JinGine.App.Benchmarks;
 
-internal static class TextContentSample
+internal static class TextSample
 {
     internal const string Sample = @"<xs:schema xmlns="""" xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:msdata=""urn:schemas-microsoft-com:xml-msdata"">
   <xs:element name=""Table1"">

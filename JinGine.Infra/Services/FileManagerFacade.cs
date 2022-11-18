@@ -12,5 +12,5 @@ public class FileManagerFacade : IFileManager
     bool IFileManager.IsUrl(string path) => FileManager.IsUrl(path);
 
     EditorFile IFileManager.CreateEditorFile(string path) =>
-        EditorFile.OpenFromPhysicalFile(path, FileManager.GetTextContent(path));
+        EditorFile.OpenFromPhysicalFile(path, FileManager.GetText(path));
 }

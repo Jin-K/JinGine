@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
-using static JinGine.App.Benchmarks.TextContentSample;
+using static JinGine.App.Benchmarks.TextSample;
 // ReSharper disable UnusedMethodReturnValue.Local
 
 namespace JinGine.App.Benchmarks;

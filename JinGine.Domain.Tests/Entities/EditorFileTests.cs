@@ -23,23 +23,23 @@ public class EditorFileTests
     {
         // Arrange
         var path = "c:\\aCoolFile.txt";
-        var textContent = string.Empty;
+        var text = string.Empty;
 
         // Act
-        var editorFile = EditorFile.OpenFromPhysicalFile(path, textContent);
+        var editorFile = EditorFile.OpenFromPhysicalFile(path, text);
 
         // Assert
         editorFile.Path.Should().NotBeNull().And.Be(path);
     }
 
     [Fact]
-    public void EditorFile_TextContent_can_be_reset()
+    public void EditorFile_Text_can_be_reset()
     {
         // Arrange
         var editorFile = EditorFile.PrepareNew();
 
         // Act
-        var act = () => editorFile.ResetTextContent("something else");
+        var act = () => editorFile.ResetText("something else");
 
         // Assert
         act.Should().NotThrow();

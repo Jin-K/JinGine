@@ -52,12 +52,12 @@ internal class EditorPresenter
                 break;
         }
 
-        _editorFile.ResetTextContent(_sb.ToString());
+        _editorFile.ResetText(_sb.ToString());
     }
 
     private void OnCaretPointChanged(object? sender, Point e)
     {
-        var offsetInText = _editorFile.Content.TextLines[e.Y].Offset;
+        var offsetInText = _editorFile.Content.Lines[e.Y].Offset;
         _pos = offsetInText + e.X;
         _view.SetCaret(e.Y + 1, e.X + 1, _pos);
     }
@@ -71,27 +71,28 @@ internal class EditorPresenter
 
     private void SetCaretPositionInView()
     {
-        var textLines = _editorFile.Content.TextLines;
-        var lineIndex = textLines.TakeWhile(tl => tl.Offset <= _pos).Skip(1).Count();
-        var lineOffset = textLines[lineIndex].Offset;
+        var lines = _editorFile.Content.Lines;
+        var lineIndex = lines.TakeWhile(tl => tl.Offset <= _pos).Skip(1).Count();
+        var lineOffset = lines[lineIndex].Offset;
         _view.SetCaret(lineIndex + 1, _pos - lineOffset + 1, _pos);
     }
 
     private void SetLinesInView()
     {
-        var textLines = _editorFile.Content.TextLines;
-        var textLinesCount = textLines.Count;
-        var printableChars = new char[_editorFile.Content.Count]; // TODO get from ArrayPool<char>.Shared.Rent and make this IDisposable to call ArrayPool<char>.Shared.Return() at the end
-        var printableTextLines = new ArraySegment<char>[textLinesCount];
+        var lines = _editorFile.Content.Lines;
+        var printableChars = new char[_editorFile.Content.Text.Length]; // TODO get from ArrayPool<char>.Shared.Rent and make this IDisposable to call ArrayPool<char>.Shared.Return() at the end
+        
+        var linesCount = lines.Count;
+        var printableLines = new ArraySegment<char>[linesCount];
 
-        for (var i = 0; i < textLinesCount; i++)
+        for (var i = 0; i < linesCount; i++)
         {
-            var textLine = textLines[i];
-            printableTextLines[i] = new ArraySegment<char>(printableChars, textLine.Offset, textLine.Count);
-            CopyCharsOrReplaceUnprintable(textLine, printableTextLines[i]);
+            var line = lines[i];
+            printableLines[i] = new ArraySegment<char>(printableChars, line.Offset, line.Count);
+            CopyCharsOrReplaceUnprintable(line, printableLines[i]);
         }
 
-        _view.SetLines(printableTextLines);
+        _view.SetLines(printableLines);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

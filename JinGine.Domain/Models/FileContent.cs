@@ -10,23 +10,23 @@ public class FileContent : IReadOnlyList<char>, IEquatable<FileContent>
 {
     public static readonly FileContent Empty = new(string.Empty);
     
-    private readonly ArraySegment<char>[] _textLines;
+    private readonly ArraySegment<char>[] _lines;
 
-    public string TextContent { get; }
+    public string Text { get; }
 
-    public FileContent(string textContent)
+    public FileContent(string text)
     {
-        TextContent = textContent;
-        _textLines = CreateLineSegments(textContent.ToCharArray());
+        Text = text;
+        _lines = CreateLineSegments(text.ToCharArray());
     }
 
-    public bool IsEmpty => _textLines.Length is 1 && _textLines[0].Count is 0;
+    public bool IsEmpty => Text.Equals(string.Empty);
 
-    public IReadOnlyList<ArraySegment<char>> TextLines => Array.AsReadOnly(_textLines);
+    public IReadOnlyList<ArraySegment<char>> Lines => Array.AsReadOnly(_lines);
 
-    public int Count => TextContent.Length;
+    public int Count => Text.Length;
 
-    public char this[int index] => TextContent[index];
+    public char this[int index] => Text[index];
 
     private static ArraySegment<char>[] CreateLineSegments(char[] textChars)
     {
@@ -62,14 +62,14 @@ public class FileContent : IReadOnlyList<char>, IEquatable<FileContent>
         return res.ToArray();
     }
 
-    public FileContent AddLine() => new(TextContent + Environment.NewLine);
+    public FileContent AddLine() => new(Text + Environment.NewLine);
 
     public FileContent InsertChar(char value, int lineIndex, int columnIndex)
     {
-        var insertOffset = _textLines[lineIndex].Offset + columnIndex;
-        var length = TextContent.Length + 1;
-        var stateValueTuple = (TextContent, value, insertOffset);
-        var textContent = string.Create(length, stateValueTuple, (span, valueTuple) =>
+        var insertOffset = _lines[lineIndex].Offset + columnIndex;
+        var length = Text.Length + 1;
+        var stateValueTuple = (Text, value, insertOffset);
+        var text = string.Create(length, stateValueTuple, (span, valueTuple) =>
         {
             var (content, @char, insertIndex) = valueTuple;
             content.AsSpan()[..insertIndex].CopyTo(span);
@@ -77,24 +77,24 @@ public class FileContent : IReadOnlyList<char>, IEquatable<FileContent>
             content.AsSpan()[insertIndex..].CopyTo(span[(insertIndex + 1)..]);
         });
 
-        return new FileContent(textContent);
+        return new FileContent(text);
     }
 
     public override bool Equals(object? obj) => Equals(obj as FileContent);
 
-    public bool Equals(FileContent? other) => other is not null && _textLines.SequenceEqual(other._textLines);
+    public bool Equals(FileContent? other) => other is not null && _lines.SequenceEqual(other._lines);
 
-    public IEnumerator<char> GetEnumerator() => TextContent.GetEnumerator();
+    public IEnumerator<char> GetEnumerator() => Text.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public override int GetHashCode() => _textLines.GetHashCode();
+    public override int GetHashCode() => _lines.GetHashCode();
 
     public static bool operator ==(FileContent left, FileContent right) => left.Equals(right);
 
     public static bool operator !=(FileContent left, FileContent right) => !(left == right);
 
-    public override string ToString() => TextContent;
+    public override string ToString() => Text;
 
     public static implicit operator string(FileContent content) => content.ToString();
 }

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
-using static JinGine.App.Benchmarks.TextContentSample;
+using static JinGine.App.Benchmarks.TextSample;
 // ReSharper disable UnusedMethodReturnValue.Local
 
 namespace JinGine.App.Benchmarks;
@@ -12,17 +12,17 @@ namespace JinGine.App.Benchmarks;
 [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Needs to be non-static for BenchmarkDotNet")]
 public class FileContentCreateLinesBenchmarks
 {
-    private static readonly char[] TextContentChars = Sample.ToCharArray();
+    private static readonly char[] TextChars = Sample.ToCharArray();
 
     [Benchmark]
-    public void CreateLinesWithForAndCounters() => CreateLinesWithForAndCounters(TextContentChars);
+    public void CreateLinesWithForAndCounters() => CreateLinesWithForAndCounters(TextChars);
 
     [Benchmark]
-    public void CreateLinesWithForAndIndexOfAnyOnSpan() => CreateLinesWithForAndIndexOfAnyOnSpan(TextContentChars);
+    public void CreateLinesWithForAndIndexOfAnyOnSpan() => CreateLinesWithForAndIndexOfAnyOnSpan(TextChars);
 
     [Benchmark]
     public void CreateLinesWithDoWhileAndIndexOfAnyOnSpan() =>
-        CreateLinesWithDoWhileAndIndexOfAnyOnSpan(TextContentChars);
+        CreateLinesWithDoWhileAndIndexOfAnyOnSpan(TextChars);
     
     private static ArraySegment<char>[] CreateLinesWithForAndCounters(char[] textChars)
     {

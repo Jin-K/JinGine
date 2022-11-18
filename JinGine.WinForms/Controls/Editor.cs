@@ -44,5 +44,5 @@ public partial class Editor : UserControl, IEditorView
         _editorTextViewer.CaretPoint = new Point(column - 1, line - 1);
     }
 
-    public void SetLines(IReadOnlyList<ArraySegment<char>> textLines) => _editorTextViewer.SetLines(textLines);
+    public void SetLines(IReadOnlyList<ArraySegment<char>> lines) => _editorTextViewer.SetLines(lines);
 }

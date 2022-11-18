@@ -13,7 +13,7 @@ internal class FileCache
     private const int CacheSize = 4;
 
     private readonly string _fileName;
-    private readonly string _textContent;
+    private readonly string _text;
 
     private static readonly FileCache?[] CachedFiles = new FileCache[CacheSize];
 
@@ -21,11 +21,11 @@ internal class FileCache
     /// Creates an instance of the <see cref="FileCache"/> class.
     /// </summary>
     /// <param name="fileName">File name path.</param>
-    /// <param name="textContent">Text content of the file.</param>
-    private FileCache(string fileName, string? textContent = null)
+    /// <param name="text">Text content of the file.</param>
+    private FileCache(string fileName, string? text = null)
     {
         _fileName = fileName;
-        _textContent = textContent ?? string.Empty;
+        _text = text ?? string.Empty;
     }
 
     /// <summary>
@@ -60,10 +60,10 @@ internal class FileCache
     /// <param name="fileName">File name path.</param>
     /// <param name="encoding">Text encoding for file reading.</param>
     /// <returns></returns>
-    internal static string GetTextContent(string fileName, Encoding? encoding = null)
+    internal static string GetText(string fileName, Encoding? encoding = null)
     {
         var cachedFile = TryGetCachedFile(fileName);
-        if (cachedFile is not null) return cachedFile._textContent;
+        if (cachedFile is not null) return cachedFile._text;
         using var fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         return fileStream.ReadTextToEnd(encoding);
     }
