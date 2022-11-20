@@ -1,19 +1,12 @@
 ﻿namespace JinGine.Domain.Models;
 
-public class EditorFile : Entity<string>
+public class EditorFile : Entity<string?>
 {
-    public string? Path { get; }
-    public FileContent Content { get; private set; }
+    public string Content { get; }
 
-    private EditorFile(string? path, string text) : base(path ?? string.Empty)
-    {
-        Path = path;
-        Content = new FileContent(text);
-    }
+    private EditorFile(string? id, string text) : base(id) => Content = text;
 
-    public void ResetText(string text) => Content = new FileContent(text);
-
-    public static EditorFile OpenFromPath(string path, System.Func<string> textResolver) => new(path, textResolver());
+    public static EditorFile OpenFromPath(string path, string content) => new(path, content);
 
     public static EditorFile PrepareNew() => new(null, string.Empty);
 }

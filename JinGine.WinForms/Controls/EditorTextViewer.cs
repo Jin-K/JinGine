@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views.Models;
 using static System.Windows.Forms.TextFormatFlags;
 
@@ -13,7 +14,7 @@ public partial class EditorTextViewer : UserControl
     private readonly CharsGrid _grid;
     private readonly Helpers.Win32Caret _caret;
     private readonly Selector _selector;
-    private IReadOnlyList<ArraySegment<char>> _lines;
+    private EditorFileViewModel _viewModel;
     private Point? _mouseDownScreenPoint;
     private PaintZone _paintZone;
 
@@ -35,7 +36,7 @@ public partial class EditorTextViewer : UserControl
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
         _caret = new Helpers.Win32Caret(this) { Size = cellSize };
         _selector = new Selector();
-        _lines = Array.Empty<ArraySegment<char>>();
+        _viewModel = EditorFileViewModel.Default;
         CaretPoint = Point.Empty;
         TextSelection = TextSelectionRange.Empty;
         
@@ -46,10 +47,10 @@ public partial class EditorTextViewer : UserControl
         this.InitMouseWheelScrollDelegation(_vScrollBar);
     }
 
-    internal void SetLines(IReadOnlyList<ArraySegment<char>> textLines)
+    internal void SetViewModel(EditorFileViewModel viewModel)
     {
-        if (_lines.SequenceEqual(textLines)) return;
-        _lines = textLines;
+        if (viewModel.TextLines.SequenceEqual(_viewModel.TextLines)) return;
+        _viewModel = viewModel;
         Invalidate();
     }
 
@@ -137,12 +138,12 @@ public partial class EditorTextViewer : UserControl
                 else if (newCaretPoint.Y > 0)
                 {
                     newCaretPoint.Y--;
-                    newCaretPoint.X = _lines[newCaretPoint.Y].Count;
+                    newCaretPoint.X = _viewModel.TextLines[newCaretPoint.Y].Count;
                 }
                 break;
             case Keys.Right:
-                if (newCaretPoint.X < _lines[newCaretPoint.Y].Count) newCaretPoint.X++;
-                else if (newCaretPoint.Y + 1 < _lines.Count)
+                if (newCaretPoint.X < _viewModel.TextLines[newCaretPoint.Y].Count) newCaretPoint.X++;
+                else if (newCaretPoint.Y + 1 < _viewModel.TextLines.Count)
                 {
                     newCaretPoint.Y++;
                     newCaretPoint.X = 0;
@@ -152,14 +153,14 @@ public partial class EditorTextViewer : UserControl
                 if (newCaretPoint.Y > 0)
                 {
                     newCaretPoint.Y--;
-                    newCaretPoint.X = Math.Min(newCaretPoint.X, _lines[newCaretPoint.Y].Count);
+                    newCaretPoint.X = Math.Min(newCaretPoint.X, _viewModel.TextLines[newCaretPoint.Y].Count);
                 }
                 break;
             case Keys.Down:
-                if (newCaretPoint.Y + 1 < _lines.Count)
+                if (newCaretPoint.Y + 1 < _viewModel.TextLines.Count)
                 {
                     newCaretPoint.Y++;
-                    newCaretPoint.X = Math.Min(newCaretPoint.X, _lines[newCaretPoint.Y].Count);
+                    newCaretPoint.X = Math.Min(newCaretPoint.X, _viewModel.TextLines[newCaretPoint.Y].Count);
                 }
                 break;
         }
@@ -199,13 +200,14 @@ public partial class EditorTextViewer : UserControl
     {
         KeyPressed?.Invoke(this, e.KeyChar);
         e.Handled = true;
+        Invalidate();
     }
 
     private void OnMouseClick(object? sender, MouseEventArgs e)
     {
         var caretPoint = ClientToCoords(e.Location);
-        if (caretPoint.Y >= _lines.Count) return;
-        var line = _lines[caretPoint.Y];
+        if (caretPoint.Y >= _viewModel.TextLines.Count) return;
+        var line = _viewModel.TextLines[caretPoint.Y];
         if (caretPoint.X > line.Count) return;
         
         OnCaretPointChanged(caretPoint);
@@ -257,10 +259,10 @@ public partial class EditorTextViewer : UserControl
 
     private void OnPaint(object? sender, PaintEventArgs e)
     {
-        var textLinesCount = _lines.Count;
+        var textLinesCount = _viewModel.TextLines.Count;
         for (var y = _vScrollBar.Value; y < textLinesCount; y++)
         {
-            var textLine = _lines[y];
+            var textLine = _viewModel.TextLines[y];
             var textLineLength = textLine.Count;
 
             if (_selector.IsLineSelected(y))

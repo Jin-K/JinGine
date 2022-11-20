@@ -3,7 +3,9 @@ using JinGine.App.Commands;
 using JinGine.App.Events;
 using JinGine.App.Handlers;
 using JinGine.App.Serialization;
+using JinGine.Domain.Repositories;
 using JinGine.Infra;
+using JinGine.Infra.Repositories;
 using JinGine.Infra.Serialization;
 using JinGine.Infra.Services;
 using JinGine.WinForms.Presenters;
@@ -29,12 +31,12 @@ internal static class Program
         var container = new UnityContainer()
             .RegisterInstance(new AppSettings(Settings.Default.FilesPath), InstanceLifetime.Singleton)
             .RegisterInstance<IEventAggregator>(EventAggregator.Instance, InstanceLifetime.Singleton)
-            .RegisterSingleton<IFileManager, FileManagerFacade>()
             .RegisterSingleton<ICommandHandler<OpenBinaryFileCommand>, OpenBinaryFileCommandHandler>()
             .RegisterSingleton<ICommandHandler<OpenCSharpFileCommand>, OpenCSharpFileCommandHandler>()
             .RegisterSingleton<ICommandDispatcher, CommandDispatcher>()
             .RegisterSingleton<MainMenuFactory>()
             .RegisterSingleton<IBinaryFileSerializer, BinaryFileSerializer>()
+            .RegisterSingleton<IEditorFileRepository, EditorFileRepository>()
             .AddExtension(new Diagnostic());
 
         var menuFactory = container.Resolve<MainMenuFactory>();

@@ -1,63 +1,114 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using JinGine.Domain.Models;
+using JinGine.WinForms.Mappers;
+using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views;
 
 namespace JinGine.WinForms.Presenters;
 
-internal class EditorPresenter
+internal class EditorPresenter : IDisposable
 {
     private readonly IEditorView _view;
-    private readonly EditorFile _editorFile;
-    private readonly StringBuilder _sb;
+    private readonly EditorFileViewModel _viewModel;
+    private int _charsLength;
     private int _pos;
+    private char[] _charsToReturn;
 
     internal EditorPresenter(IEditorView view, EditorFile editorFile)
     {
+        var length = editorFile.Content.Length;
+        var textChars = ArrayPool<char>.Shared.Rent(length);
+        editorFile.Content.CopyTo(textChars.AsSpan());
+        var textLines = TextLinesMapper.Map(textChars, length);
+
         _view = view;
-        _editorFile = editorFile;
-        _sb = new StringBuilder(editorFile.Content);
-        _pos = editorFile.Content.Count;
+        _viewModel = new EditorFileViewModel(textLines);
+        _charsLength = length;
+        _pos = editorFile.Content.Length;
+        _charsToReturn = textChars;
 
         view.KeyPressed += OnKeyPressed;
         view.CaretPointChanged += OnCaretPointChanged;
 
-        SetCaretPositionInView();
-        SetLinesInView();
+        _view.SetViewModel(_viewModel);
+        _viewModel.UpdateCaretPositions(_pos);
+        SetCaretPositionsInView();
+        ReplaceUnprintableChars(textChars.AsSpan(), length);
+    }
+
+    private void AutoRentChars()
+    {
+        if (_charsLength <= _charsToReturn.Length) return;
+
+        var oldCharsToReturn = _charsToReturn;
+        _charsToReturn = ArrayPool<char>.Shared.Rent(_charsLength);
+        oldCharsToReturn.CopyTo(_charsToReturn.AsSpan());
+        ArrayPool<char>.Shared.Return(oldCharsToReturn);
     }
 
     private void HandleCharKey(char value)
     {
-        // TODO use commands to update the domain model
+        var oldCharsLength = _charsLength;
         switch (value)
         {
-            case (char)ConsoleKey.Enter or '\n':
-                _sb.Insert(_pos, Environment.NewLine);
-                _pos += Environment.NewLine.Length;
-                break;
-            case (char)ConsoleKey.Backspace:
-                // TODO there is a bug here when we try to remove last char from the text, _model.Content ends empty
-                _pos--;
-                var removeLength = 1;
-                if (_sb[_pos] is '\n' && _pos >= 1 && _sb[_pos - 1] is '\r')
-                {
-                    _pos--;
-                    removeLength++;
-                }
-                _sb.Remove(_pos, removeLength);
-                break;
-            default:
-                _sb.Insert(_pos, value);
-                _pos++;
-                break;
-        }
+            case '\r' or '\n':
+            {
+                var newLine = Environment.NewLine.AsSpan();
+                
+                _charsLength = oldCharsLength + newLine.Length;
+                AutoRentChars();
 
-        _editorFile.ResetText(_sb.ToString());
+                _charsToReturn.AsSpan(_pos, oldCharsLength - _pos)
+                    .CopyTo(_charsToReturn.AsSpan(_pos + newLine.Length));
+                newLine.CopyTo(_charsToReturn.AsSpan(_pos));
+                _charsToReturn.AsSpan(0, _pos)
+                    .CopyTo(_charsToReturn.AsSpan());
+                _pos += newLine.Length;
+
+                break;
+            }
+            case (char)ConsoleKey.Backspace:
+            {
+                if (_pos is 0) return;
+
+                var retreat = 1;
+                if (_pos >= 2 && _charsToReturn[_pos - 1] is '\n' && _charsToReturn[_pos - 2] is '\r')
+                    retreat++;
+                
+                _charsLength = oldCharsLength - retreat;
+                AutoRentChars();
+
+                _charsToReturn.AsSpan(_pos, oldCharsLength - _pos)
+                    .CopyTo(_charsToReturn.AsSpan(_pos - retreat));
+                _charsToReturn.AsSpan(0, _pos - retreat)
+                    .CopyTo(_charsToReturn.AsSpan());
+                _pos -= retreat;
+
+                break;
+            }
+            default:
+            {
+                _charsLength++;
+                AutoRentChars();
+
+                _charsToReturn.AsSpan(_pos, oldCharsLength - _pos)
+                    .CopyTo(_charsToReturn.AsSpan(_pos + 1));
+                _charsToReturn[_pos] = value;
+                _charsToReturn.AsSpan(0, _pos)
+                    .CopyTo(_charsToReturn.AsSpan());
+                _pos++;
+
+                break;
+            }
+        }
+        
+        _viewModel.TextLines = TextLinesMapper.Map(_charsToReturn, _charsLength);
     }
 
     private void OnCaretPointChanged(object? sender, Point e)
     {
-        var offsetInText = _editorFile.Content.Lines[e.Y].Offset;
+        var offsetInText = _viewModel.TextLines[e.Y].Offset;
         _pos = offsetInText + e.X;
         _view.SetCaret(e.Y + 1, e.X + 1, _pos);
     }
@@ -65,52 +116,33 @@ internal class EditorPresenter
     private void OnKeyPressed(object? sender, char e)
     {
         HandleCharKey(e);
-        SetCaretPositionInView();
-        SetLinesInView();
+        _viewModel.UpdateCaretPositions(_pos);
+        SetCaretPositionsInView();
     }
 
-    private void SetCaretPositionInView()
+    private void SetCaretPositionsInView()
     {
-        var lines = _editorFile.Content.Lines;
-        var lineIndex = lines.TakeWhile(tl => tl.Offset <= _pos).Skip(1).Count();
-        var lineOffset = lines[lineIndex].Offset;
-        _view.SetCaret(lineIndex + 1, _pos - lineOffset + 1, _pos);
-    }
-
-    private void SetLinesInView()
-    {
-        var lines = _editorFile.Content.Lines;
-        var printableChars = new char[_editorFile.Content.Text.Length]; // TODO get from ArrayPool<char>.Shared.Rent and make this IDisposable to call ArrayPool<char>.Shared.Return() at the end
-        
-        var linesCount = lines.Count;
-        var printableLines = new ArraySegment<char>[linesCount];
-
-        for (var i = 0; i < linesCount; i++)
-        {
-            var line = lines[i];
-            printableLines[i] = new ArraySegment<char>(printableChars, line.Offset, line.Count);
-            CopyCharsOrReplaceUnprintable(line, printableLines[i]);
-        }
-
-        _view.SetLines(printableLines);
+        // TODO missing two-way-data-binding to let the view detect changes and avoid this method
+        _view.SetCaret(_viewModel.LineNumber, _viewModel.ColumnNumber, _viewModel.Offset);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void CopyCharsOrReplaceUnprintable(ReadOnlySpan<char> srcSpan, Span<char> destSpan)
+    private static void ReplaceUnprintableChars(Span<char> charsSpan, int length)
     {
-        srcSpan.CopyTo(destSpan);
-        var length = srcSpan.Length;
         for (var i = 0; i < length; i++)
         {
-            var ch = srcSpan[i];
-            switch (ch)
+            switch (charsSpan[i])
             {
-                case (char)0: destSpan[i] = ','; continue;
-                case '\t': destSpan[i] = '·'; continue;
-                case < ' ': destSpan[i] = '…'; continue;
+                case (char)0: charsSpan[i] = ','; continue;
+                case '\t': charsSpan[i] = '·'; continue;
+                case '\r' or '\n': continue;
+                case < ' ': charsSpan[i] = '…'; continue;
                 case < (char)0x7f: continue;
-                case < (char)0xa1: destSpan[i] = '¡'; continue;
+                case < (char)0xa1: charsSpan[i] = '¡'; continue;
             }
         }
     }
+
+    // TODO dispose when needed
+    public void Dispose() => ArrayPool<char>.Shared.Return(_charsToReturn);
 }

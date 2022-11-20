@@ -1,4 +1,3 @@
-using System;
 using JinGine.App.Commands;
 using JinGine.App.Events;
 using JinGine.App.Handlers;
@@ -21,10 +20,6 @@ namespace JinGine.App.Tests.Handlers
         {
             _autoMocker = new AutoMocker();
             _expectedDeserializeResult = new object();
-
-            _autoMocker.GetMock<IFileManager>()
-                .Setup(x => x.ExpandPath(It.IsAny<string>()))
-                .Returns($"C:\\{FileName}");
             
             _autoMocker.GetMock<IBinaryFileSerializer>()
                 .Setup(x => x.Deserialize(It.IsAny<string>()))
@@ -33,25 +28,9 @@ namespace JinGine.App.Tests.Handlers
             _autoMocker.GetMock<IEventAggregator>(true);
             
             _sut = new OpenBinaryFileCommandHandler(
-                _autoMocker.Get<IFileManager>(),
                 _autoMocker.Get<IBinaryFileSerializer>(),
                 new AppSettings(string.Empty),
                 _autoMocker.Get<IEventAggregator>());
-        }
-
-        [Fact]
-        public void File_name_is_expanded()
-        {
-            // Arrange
-            var command = new OpenBinaryFileCommand(FileName);
-            var fileManagerMock = _autoMocker.GetMock<IFileManager>();
-
-            // Act
-            _sut.Handle(command);
-
-            // Assert
-            fileManagerMock.Verify(x =>
-                x.ExpandPath(It.Is(FileName, StringComparer.Ordinal)), Times.Once);
         }
 
         [Fact]
