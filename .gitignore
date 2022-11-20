@@ -13,4 +13,8 @@
 # Visual Studio Code cache/options directory
 *.code-workspace
 
+# Visual Studio extensions
+/*.sln.DotSettings.user
+
+# Visual Studio Code extensions
 .history
