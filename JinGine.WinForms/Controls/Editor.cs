@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views;
 using JinGine.WinForms.Views.Models;
 
@@ -38,11 +39,14 @@ public partial class Editor : UserControl, IEditorView
         base.Dock = DockStyle.Fill;
     }
 
-    public void SetLines(string[] textLines) => _editorTextViewer.SetLines(textLines);
-
     public void SetCaret(int line, int column, int offset)
     {
-        (Line, Column, Offset) = (line, column, offset);
+        Line = line;
+        Column = column;
+        Offset = offset;
         _editorTextViewer.CaretPoint = new Point(column - 1, line - 1);
     }
+    
+    public void SetViewModel(EditorFileViewModel viewModel) =>
+        _editorTextViewer.SetViewModel(viewModel);
 }

@@ -14,7 +14,7 @@ internal class MainMenuFactory // TODO move to infra ?
         _commandDispatcher = commandDispatcher;
     }
 
-    internal ToolStripItem[] CreateItems(params MenuItemDef[] definitions)
+    internal ToolStripItem[] CreateItems(MenuItemDef[] definitions)
     {
         var result = new ToolStripItem[definitions.Length];
 
