@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
+using JinGine.App.Mappers;
 using JinGine.Domain.Models;
-using JinGine.WinForms.Mappers;
 using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views;
 
@@ -13,20 +13,21 @@ internal class EditorPresenter : IDisposable
     private readonly EditorFileViewModel _viewModel;
     private int _charsLength;
     private int _pos;
-    private char[] _charsToReturn;
+    private char[] _rentedChars;
 
     internal EditorPresenter(IEditorView view, EditorFile editorFile)
     {
         var length = editorFile.Content.Length;
         var textChars = ArrayPool<char>.Shared.Rent(length);
         editorFile.Content.CopyTo(textChars.AsSpan());
-        var textLines = TextLinesMapper.Map(textChars, length);
+        var charsSegment = new ArraySegment<char>(textChars, 0, length);
+        var textLines = EditorTextLinesMapper.Map(charsSegment);
 
         _view = view;
         _viewModel = new EditorFileViewModel(textLines);
         _charsLength = length;
         _pos = editorFile.Content.Length;
-        _charsToReturn = textChars;
+        _rentedChars = textChars;
 
         view.KeyPressed += OnKeyPressed;
         view.CaretPointChanged += OnCaretPointChanged;
@@ -34,17 +35,17 @@ internal class EditorPresenter : IDisposable
         _view.SetViewModel(_viewModel);
         _viewModel.UpdateCaretPositions(_pos);
         SetCaretPositionsInView();
-        ReplaceUnprintableChars(textChars.AsSpan(), length);
+        ReplaceUnprintableChars(textChars.AsSpan(0, length));
     }
 
-    private void AutoRentChars()
+    private void EnsureRentedCharsSize()
     {
-        if (_charsLength <= _charsToReturn.Length) return;
+        if (_charsLength <= _rentedChars.Length) return;
 
-        var oldCharsToReturn = _charsToReturn;
-        _charsToReturn = ArrayPool<char>.Shared.Rent(_charsLength);
-        oldCharsToReturn.CopyTo(_charsToReturn.AsSpan());
-        ArrayPool<char>.Shared.Return(oldCharsToReturn);
+        var charsToReturn = _rentedChars;
+        _rentedChars = ArrayPool<char>.Shared.Rent(_charsLength);
+        charsToReturn.CopyTo(_rentedChars.AsSpan());
+        ArrayPool<char>.Shared.Return(charsToReturn);
     }
 
     private void HandleCharKey(char value)
@@ -53,57 +54,61 @@ internal class EditorPresenter : IDisposable
         switch (value)
         {
             case '\r' or '\n':
-            {
                 var newLine = Environment.NewLine.AsSpan();
-                
-                _charsLength = oldCharsLength + newLine.Length;
-                AutoRentChars();
 
-                _charsToReturn.AsSpan(_pos, oldCharsLength - _pos)
-                    .CopyTo(_charsToReturn.AsSpan(_pos + newLine.Length));
-                newLine.CopyTo(_charsToReturn.AsSpan(_pos));
-                _charsToReturn.AsSpan(0, _pos)
-                    .CopyTo(_charsToReturn.AsSpan());
+                // determine chars length
+                _charsLength = oldCharsLength + newLine.Length;
+                EnsureRentedCharsSize();
+
+                // copy last chars first
+                _rentedChars.AsSpan(_pos, oldCharsLength - _pos).CopyTo(_rentedChars.AsSpan(_pos + newLine.Length));
+                // set new line chars at position
+                newLine.CopyTo(_rentedChars.AsSpan(_pos));
+                // copy first chars at the end
+                _rentedChars.AsSpan(0, _pos).CopyTo(_rentedChars.AsSpan());
+                // set new position
                 _pos += newLine.Length;
 
                 break;
-            }
             case (char)ConsoleKey.Backspace:
-            {
                 if (_pos is 0) return;
 
+                // determine retreat count
                 var retreat = 1;
-                if (_pos >= 2 && _charsToReturn[_pos - 1] is '\n' && _charsToReturn[_pos - 2] is '\r')
+                if (_pos >= 2 && _rentedChars[_pos - 1] is '\n' && _rentedChars[_pos - 2] is '\r')
                     retreat++;
-                
-                _charsLength = oldCharsLength - retreat;
-                AutoRentChars();
 
-                _charsToReturn.AsSpan(_pos, oldCharsLength - _pos)
-                    .CopyTo(_charsToReturn.AsSpan(_pos - retreat));
-                _charsToReturn.AsSpan(0, _pos - retreat)
-                    .CopyTo(_charsToReturn.AsSpan());
+                // determine chars length
+                _charsLength = oldCharsLength - retreat;
+                EnsureRentedCharsSize();
+
+                // copy last chars first
+                _rentedChars.AsSpan(_pos, oldCharsLength - _pos).CopyTo(_rentedChars.AsSpan(_pos - retreat));
+                // copy first chars at the end
+                _rentedChars.AsSpan(0, _pos - retreat).CopyTo(_rentedChars.AsSpan());
+                // set new position
                 _pos -= retreat;
 
                 break;
-            }
             default:
-            {
+                // determine chars length
                 _charsLength++;
-                AutoRentChars();
+                EnsureRentedCharsSize();
 
-                _charsToReturn.AsSpan(_pos, oldCharsLength - _pos)
-                    .CopyTo(_charsToReturn.AsSpan(_pos + 1));
-                _charsToReturn[_pos] = value;
-                _charsToReturn.AsSpan(0, _pos)
-                    .CopyTo(_charsToReturn.AsSpan());
+                // copy last chars first
+                _rentedChars.AsSpan(_pos, oldCharsLength - _pos).CopyTo(_rentedChars.AsSpan(_pos + 1));
+                // set actual char at position
+                _rentedChars[_pos] = value;
+                // copy first chars at the end
+                _rentedChars.AsSpan(0, _pos).CopyTo(_rentedChars.AsSpan());
+                // set new position
                 _pos++;
 
                 break;
-            }
         }
-        
-        _viewModel.TextLines = TextLinesMapper.Map(_charsToReturn, _charsLength);
+
+        var charsSegment = new ArraySegment<char>(_rentedChars, 0, _charsLength);
+        _viewModel.TextLines = EditorTextLinesMapper.Map(charsSegment);
     }
 
     private void OnCaretPointChanged(object? sender, Point e)
@@ -127,8 +132,9 @@ internal class EditorPresenter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ReplaceUnprintableChars(Span<char> charsSpan, int length)
+    private static void ReplaceUnprintableChars(Span<char> charsSpan)
     {
+        var length = charsSpan.Length;
         for (var i = 0; i < length; i++)
         {
             switch (charsSpan[i])
@@ -144,5 +150,5 @@ internal class EditorPresenter : IDisposable
     }
 
     // TODO dispose when needed
-    public void Dispose() => ArrayPool<char>.Shared.Return(_charsToReturn);
+    public void Dispose() => ArrayPool<char>.Shared.Return(_rentedChars);
 }

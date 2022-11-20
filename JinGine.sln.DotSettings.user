@@ -12,6 +12,9 @@
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Inserting_char_c_at_first_line_and_column_index_8_should_set_char_c_at_index_8_of_FileContent&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Adding_a_line_should_create_a_text_line_at_the_end_with_position_in_text_plus_length_of_environment_new_line&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::3481896E-1FA6-4957-B3E3-8B81C2703FB9::net6.0::JinGine.Domain.Tests.ValueObjects.FileContentTests.Lines_followed_by_other_lines_should_have_a_line_terminator&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::5A4763E7-2278-4834-AB1E-EE8803FE6C90::net6.0::JinGine.App.Tests.Handlers.OpenBinaryFileCommandHandlerTests.Path_should_be_composed_with_settings_file_path&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::5A4763E7-2278-4834-AB1E-EE8803FE6C90::net6.0::JinGine.App.Tests.Handlers.OpenBinaryFileCommandHandlerTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::5A4763E7-2278-4834-AB1E-EE8803FE6C90::net6.0::JinGine.App.Tests.Mappers.EditorTextLinesMapperTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

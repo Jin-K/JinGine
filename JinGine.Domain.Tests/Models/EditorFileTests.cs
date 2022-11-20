@@ -2,7 +2,7 @@
 using JinGine.Domain.Models;
 using Xunit;
 
-namespace JinGine.Domain.Tests.Entities;
+namespace JinGine.Domain.Tests.Models;
 
 public class EditorFileTests
 {
