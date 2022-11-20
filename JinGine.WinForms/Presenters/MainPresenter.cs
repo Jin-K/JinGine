@@ -10,6 +10,7 @@ namespace JinGine.WinForms.Presenters;
 internal class MainPresenter
 {
     private readonly IMainView _mainView;
+    //private readonly ISet<IDisposable> _disposablePresenters;
 
     internal MainPresenter(
         IMainView mainView,
@@ -17,6 +18,9 @@ internal class MainPresenter
         IEventAggregator eventAggregator)
     {
         _mainView = mainView;
+        //_disposablePresenters = new HashSet<IDisposable>();
+
+        mainView.TabClosed += OnTabClosed;
 
         eventAggregator.Subscribe<UpdateStatusBarInfoEvent>(@event => _mainView.StatusBar.Info = @event.Info);
         eventAggregator.Subscribe<LoadFileDataEvent>(OnLoadFileDataEvent);
@@ -49,18 +53,27 @@ internal class MainPresenter
             {
                 var model = new DataGridModel(dt);
                 var view = new DataGrid();
-                view.Tag = new DataGridPresenter(view, model);
+                _ = new DataGridPresenter(view, model);
                 _mainView.ShowInNewTab(@event.FileName, view);
                 break;
             }
-            case Editor2DText editor2DText:
+            case EditorFile editorFile:
             {
                 var view = new Editor();
-                view.Tag = new EditorPresenter(view, editor2DText);
+                _ = new EditorPresenter(view, editorFile);
                 _mainView.ShowInNewTab(@event.FileName, view);
                 break;
             }
             default: throw new SystemException($"Unknown type {@event.FileData.GetType().FullName}");
         }
+    }
+
+    private void OnTabClosed(object? sender, EventArgs e)
+    {
+        //if (sender is IDisposable disposable && _disposablePresenters.Contains(disposable))
+        //{
+        //    disposable.Dispose();
+        //    _disposablePresenters.Remove(disposable);
+        //}
     }
 }

@@ -4,8 +4,10 @@ namespace JinGine.WinForms
 {
     public partial class MainForm : Form, IMainView
     {
-        public IStatusBarView StatusBar => _statusBar;
+        public event EventHandler? TabClosed;
 
+        public IStatusBarView StatusBar => _statusBar;
+        
         public MainForm() => InitializeComponent();
 
         public void SetMenuItems(ToolStripItem[] items) => MainMenuStrip.Items.AddRange(items);
