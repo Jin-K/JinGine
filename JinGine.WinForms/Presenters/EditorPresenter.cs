@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 using JinGine.App.Mappers;
 using JinGine.Domain.Models;
@@ -37,6 +37,8 @@ internal class EditorPresenter : IDisposable
         ReplaceUnprintableChars(textChars.AsSpan(0, length));
     }
 
+    public void Dispose() => ArrayPool<char>.Shared.Return(_rentedChars);
+
     private void EnsureRentedCharsSize()
     {
         if (_charsLength <= _rentedChars.Length) return;
@@ -59,12 +61,16 @@ internal class EditorPresenter : IDisposable
                 _charsLength = oldCharsLength + newLine.Length;
                 EnsureRentedCharsSize();
 
-                // copy last chars first
-                _rentedChars.AsSpan(_pos, oldCharsLength - _pos).CopyTo(_rentedChars.AsSpan(_pos + newLine.Length));
+                // copy ending chars
+                _rentedChars.AsSpan(_pos, oldCharsLength - _pos)
+                    .CopyTo(_rentedChars.AsSpan(_pos + newLine.Length));
+                
                 // set new line chars at position
                 newLine.CopyTo(_rentedChars.AsSpan(_pos));
-                // copy first chars at the end
+
+                // copy leading chars
                 _rentedChars.AsSpan(0, _pos).CopyTo(_rentedChars.AsSpan());
+                
                 // set new position
                 _pos += newLine.Length;
 
@@ -81,10 +87,13 @@ internal class EditorPresenter : IDisposable
                 _charsLength = oldCharsLength - retreat;
                 EnsureRentedCharsSize();
 
-                // copy last chars first
-                _rentedChars.AsSpan(_pos, oldCharsLength - _pos).CopyTo(_rentedChars.AsSpan(_pos - retreat));
-                // copy first chars at the end
+                // copy ending chars
+                _rentedChars.AsSpan(_pos, oldCharsLength - _pos)
+                    .CopyTo(_rentedChars.AsSpan(_pos - retreat));
+                
+                // copy leading chars
                 _rentedChars.AsSpan(0, _pos - retreat).CopyTo(_rentedChars.AsSpan());
+                
                 // set new position
                 _pos -= retreat;
 
@@ -94,12 +103,16 @@ internal class EditorPresenter : IDisposable
                 _charsLength++;
                 EnsureRentedCharsSize();
 
-                // copy last chars first
-                _rentedChars.AsSpan(_pos, oldCharsLength - _pos).CopyTo(_rentedChars.AsSpan(_pos + 1));
-                // set actual char at position
+                // copy ending chars
+                _rentedChars.AsSpan(_pos, oldCharsLength - _pos)
+                    .CopyTo(_rentedChars.AsSpan(_pos + 1));
+                
+                // set new char value at position
                 _rentedChars[_pos] = value;
-                // copy first chars at the end
+                
+                // copy leading chars
                 _rentedChars.AsSpan(0, _pos).CopyTo(_rentedChars.AsSpan());
+                
                 // set new position
                 _pos++;
 
@@ -142,7 +155,4 @@ internal class EditorPresenter : IDisposable
             }
         }
     }
-
-    // TODO dispose when needed
-    public void Dispose() => ArrayPool<char>.Shared.Return(_rentedChars);
 }
