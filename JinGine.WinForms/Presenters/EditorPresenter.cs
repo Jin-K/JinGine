@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using JinGine.App.Mappers;
 using JinGine.Domain.Models;
@@ -34,7 +34,6 @@ internal class EditorPresenter : IDisposable
 
         _view.SetViewModel(_viewModel);
         _viewModel.UpdateCaretPositions(_pos);
-        SetCaretPositionsInView();
         ReplaceUnprintableChars(textChars.AsSpan(0, length));
     }
 
@@ -115,20 +114,15 @@ internal class EditorPresenter : IDisposable
     {
         var offsetInText = _viewModel.TextLines[e.Y].Offset;
         _pos = offsetInText + e.X;
-        _view.SetCaret(e.Y + 1, e.X + 1, _pos);
+        _viewModel.ColumnNumber = e.X + 1;
+        _viewModel.LineNumber = e.Y + 1;
+        _viewModel.Offset = _pos;
     }
 
     private void OnKeyPressed(object? sender, char e)
     {
         HandleCharKey(e);
         _viewModel.UpdateCaretPositions(_pos);
-        SetCaretPositionsInView();
-    }
-
-    private void SetCaretPositionsInView()
-    {
-        // TODO missing two-way-data-binding to let the view detect changes and avoid this method
-        _view.SetCaret(_viewModel.LineNumber, _viewModel.ColumnNumber, _viewModel.Offset);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

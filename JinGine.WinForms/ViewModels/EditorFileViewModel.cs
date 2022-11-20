@@ -1,23 +1,43 @@
 ﻿namespace JinGine.WinForms.ViewModels;
 
-public class EditorFileViewModel
+public class EditorFileViewModel : BaseViewModel
 {
     internal static readonly EditorFileViewModel Default = new(new [] { ArraySegment<char>.Empty });
+    private int _columnNumber;
+    private int _lineNumber;
+    private int _offset;
+    private IReadOnlyList<ArraySegment<char>> _textLines;
 
-    internal IReadOnlyList<ArraySegment<char>> TextLines { get; set; }
+    internal int ColumnNumber
+    {
+        get => _columnNumber;
+        set => SetField(ref _columnNumber, value);
+    }
 
-    internal int LineNumber { get; set; }
+    internal int LineNumber
+    {
+        get => _lineNumber;
+        set => SetField(ref _lineNumber, value);
+    }
 
-    internal int ColumnNumber { get; set; }
+    internal int Offset
+    {
+        get => _offset;
+        set => SetField(ref _offset, value);
+    }
 
-    internal int Offset { get; set; }
+    internal IReadOnlyList<ArraySegment<char>> TextLines
+    {
+        get => _textLines;
+        set => SetField(ref _textLines, value);
+    }
 
     internal EditorFileViewModel(IReadOnlyList<ArraySegment<char>> textLines)
     {
-        TextLines = textLines;
-        LineNumber = 1;
-        ColumnNumber = 1;
-        Offset = 0;
+        _textLines = textLines;
+        _lineNumber = 1;
+        _columnNumber = 1;
+        _offset = 0;
     }
 
     internal void UpdateCaretPositions(int offset)

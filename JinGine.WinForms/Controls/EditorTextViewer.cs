@@ -17,8 +17,7 @@ public partial class EditorTextViewer : UserControl
     private EditorFileViewModel _viewModel;
     private Point? _mouseDownScreenPoint;
     private PaintZone _paintZone;
-
-    internal Point CaretPoint { get; set; }
+    private Point _caretPoint;
 
     [Bindable(true)]
     internal TextSelectionRange TextSelection { get; set; }
@@ -37,7 +36,7 @@ public partial class EditorTextViewer : UserControl
         _caret = new Helpers.Win32Caret(this) { Size = cellSize };
         _selector = new Selector();
         _viewModel = EditorFileViewModel.Default;
-        CaretPoint = Point.Empty;
+        _caretPoint = Point.Empty;
         TextSelection = TextSelectionRange.Empty;
         
         base.DoubleBuffered = true;
@@ -51,6 +50,7 @@ public partial class EditorTextViewer : UserControl
     {
         if (viewModel.TextLines.SequenceEqual(_viewModel.TextLines)) return;
         _viewModel = viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         Invalidate();
     }
 
@@ -82,7 +82,7 @@ public partial class EditorTextViewer : UserControl
 
     private void EnsureVisibleCaret()
     {
-        var clientRect = CoordsToClientRect(CaretPoint.X, CaretPoint.Y);
+        var clientRect = CoordsToClientRect(_caretPoint.X, _caretPoint.Y);
 
         var desiredHScroll = _hScrollBar.Value
             - Math.Max(0, (_paintZone.Bounds.Left - _grid.XMargin - clientRect.Left + _grid.CellWidth - 1) / _grid.CellWidth)
@@ -100,7 +100,7 @@ public partial class EditorTextViewer : UserControl
 
     private void OnCaretPointChanged(Point caretPoint)
     {
-        CaretPoint = caretPoint;
+        _caretPoint = caretPoint;
         CaretPointChanged?.Invoke(this, caretPoint);
         _caret.Position = CoordsToClient(caretPoint.X, caretPoint.Y);
         Invalidate();
@@ -109,14 +109,14 @@ public partial class EditorTextViewer : UserControl
     private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
     {
         if (e.Type is ScrollEventType.EndScroll || e.OldValue.Equals(e.NewValue)) return;
-        _caret.Position = CoordsToClient(CaretPoint.X - e.NewValue + _hScrollBar.Value, CaretPoint.Y);
+        _caret.Position = CoordsToClient(_caretPoint.X - e.NewValue + _hScrollBar.Value, _caretPoint.Y);
         Invalidate();
     }
     
     private void OnVScrollBarScroll(object? sender, ScrollEventArgs e)
     {
         if (e.Type is ScrollEventType.EndScroll || e.OldValue.Equals(e.NewValue)) return;
-        _caret.Position = CoordsToClient(CaretPoint.X, CaretPoint.Y - e.NewValue + _vScrollBar.Value);
+        _caret.Position = CoordsToClient(_caretPoint.X, _caretPoint.Y - e.NewValue + _vScrollBar.Value);
         Invalidate();
     }
     
@@ -125,12 +125,12 @@ public partial class EditorTextViewer : UserControl
     {
         if (e.KeyCode is Keys.ShiftKey && _selector.State is SelectionState.Selected)
         {
-            _selector.Select(CaretPoint);
+            _selector.Select(_caretPoint);
             Invalidate();
         }
 
         // TODO notify direction intent via event to presenter ?
-        var newCaretPoint = CaretPoint;
+        var newCaretPoint = _caretPoint;
         switch (e.KeyCode)
         {
             case Keys.Left:
@@ -165,7 +165,7 @@ public partial class EditorTextViewer : UserControl
                 break;
         }
 
-        if (newCaretPoint == CaretPoint) return;
+        if (newCaretPoint == _caretPoint) return;
 
         if ((ModifierKeys & Keys.Shift) is Keys.Shift)
         {
@@ -291,6 +291,17 @@ public partial class EditorTextViewer : UserControl
             var textRect = Rectangle.Union(startCharRect, endCharRect);
             var text = textLine.AsSpan(_hScrollBar.Value, visibleCols);
             TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFormatFlags);
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(_viewModel.ColumnNumber):
+            case nameof(_viewModel.LineNumber):
+                _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1);
+                break;
         }
     }
 

@@ -10,6 +10,8 @@ namespace JinGine.WinForms.Controls;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
+    private EditorFileViewModel _viewModel = EditorFileViewModel.Default;
+
     private int Line { set => _lineLabel.Text = Convert.ToString(value); }
     private int Column { set => _columnLabel.Text = Convert.ToString(value); }
     private int Offset { set => _offsetLabel.Text = Convert.ToString(value); }
@@ -38,15 +40,27 @@ public partial class Editor : UserControl, IEditorView
         InitializeComponent();
         base.Dock = DockStyle.Fill;
     }
-
-    public void SetCaret(int line, int column, int offset)
-    {
-        Line = line;
-        Column = column;
-        Offset = offset;
-        _editorTextViewer.CaretPoint = new Point(column - 1, line - 1);
-    }
     
-    public void SetViewModel(EditorFileViewModel viewModel) =>
+    public void SetViewModel(EditorFileViewModel viewModel)
+    {
+        _viewModel = viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _editorTextViewer.SetViewModel(viewModel);
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(_viewModel.ColumnNumber):
+                Column = _viewModel.ColumnNumber;
+                break;
+            case nameof(_viewModel.LineNumber):
+                Line = _viewModel.LineNumber;
+                break;
+            case nameof(_viewModel.Offset):
+                Offset = _viewModel.Offset;
+                break;
+        }
+    }
 }
