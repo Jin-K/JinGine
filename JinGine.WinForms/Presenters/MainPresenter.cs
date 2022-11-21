@@ -60,7 +60,7 @@ internal class MainPresenter
             case EditorFile editorFile:
             {
                 var view = new Editor();
-                _ = new EditorPresenter(view, editorFile);
+                _ = new EditorPresenter(view, editorFile); // TODO dispose when needed
                 _mainView.ShowInNewTab(@event.FileName, view);
                 break;
             }

@@ -10,7 +10,5 @@ internal interface IEditorView
     event EventHandler<char> KeyPressed;
     event EventHandler<Point> CaretPointChanged;
 
-    void SetCaret(int line, int column, int offset);
-
     void SetViewModel(EditorFileViewModel viewModel);
 }
