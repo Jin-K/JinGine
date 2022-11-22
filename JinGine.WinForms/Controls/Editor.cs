@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Reactive.Disposables;
 using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views;
 using JinGine.WinForms.Views.Models;
@@ -10,7 +11,8 @@ namespace JinGine.WinForms.Controls;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
-    private EditorFileViewModel _viewModel = EditorFileViewModel.Default;
+    private EditorFileViewModel _viewModel;
+    private IDisposable _subscriptionsObject;
 
     private int Line { set => _lineLabel.Text = Convert.ToString(value); }
     private int Column { set => _columnLabel.Text = Convert.ToString(value); }
@@ -38,29 +40,32 @@ public partial class Editor : UserControl, IEditorView
     public Editor()
     {
         InitializeComponent();
+
+        _viewModel = EditorFileViewModel.Default;
+        _subscriptionsObject = Disposable.Empty;
+
         base.Dock = DockStyle.Fill;
+        Disposed += OnDisposed;
     }
     
     public void SetViewModel(EditorFileViewModel viewModel)
     {
         _viewModel = viewModel;
-        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _editorTextViewer.SetViewModel(viewModel);
+
+        _subscriptionsObject.Dispose();
+
+        var sub1 = _viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(column => Column = column);
+        var sub2 = _viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(line => Line = line);
+        var sub3 = _viewModel.ObserveChanges(vm => vm.Offset).Subscribe(offset => Offset = offset);
+
+        _subscriptionsObject = Disposable.Create(() =>
+        {
+            sub1.Dispose();
+            sub2.Dispose();
+            sub3.Dispose();
+        });
     }
 
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case nameof(_viewModel.ColumnNumber):
-                Column = _viewModel.ColumnNumber;
-                break;
-            case nameof(_viewModel.LineNumber):
-                Line = _viewModel.LineNumber;
-                break;
-            case nameof(_viewModel.Offset):
-                Offset = _viewModel.Offset;
-                break;
-        }
-    }
+    private void OnDisposed(object? sender, EventArgs e) => _subscriptionsObject.Dispose();
 }

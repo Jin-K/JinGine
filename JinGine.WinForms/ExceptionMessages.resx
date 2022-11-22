@@ -123,4 +123,7 @@
   <data name="GridProjector_SetOffsets_Should_be_zero_or_positive_" xml:space="preserve">
     <value>Should be zero or positive.</value>
   </data>
+  <data name="BaseViewModel_OnPropertyChanged_Should_be_a_property_selector" xml:space="preserve">
+	  <value>Should be a property selector</value>
+  </data>
 </root>
