@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Reactive.Disposables;
 using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views;
 using JinGine.WinForms.Views.Models;
@@ -10,8 +11,8 @@ namespace JinGine.WinForms.Controls;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
-    private readonly List<IDisposable> _subscriptions;
     private EditorFileViewModel _viewModel;
+    private IDisposable _subscriptionsObject;
 
     private int Line { set => _lineLabel.Text = Convert.ToString(value); }
     private int Column { set => _columnLabel.Text = Convert.ToString(value); }
@@ -41,7 +42,7 @@ public partial class Editor : UserControl, IEditorView
         InitializeComponent();
 
         _viewModel = EditorFileViewModel.Default;
-        _subscriptions = new List<IDisposable>();
+        _subscriptionsObject = Disposable.Empty;
 
         base.Dock = DockStyle.Fill;
         Disposed += OnDisposed;
@@ -50,17 +51,21 @@ public partial class Editor : UserControl, IEditorView
     public void SetViewModel(EditorFileViewModel viewModel)
     {
         _viewModel = viewModel;
-        
-        _subscriptions.Add(_viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(column => Column = column));
-        _subscriptions.Add(_viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(line => Line = line));
-        _subscriptions.Add(_viewModel.ObserveChanges(vm => vm.Offset).Subscribe(offset => Offset = offset));
-        
         _editorTextViewer.SetViewModel(viewModel);
+
+        _subscriptionsObject.Dispose();
+
+        var sub1 = _viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(column => Column = column);
+        var sub2 = _viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(line => Line = line);
+        var sub3 = _viewModel.ObserveChanges(vm => vm.Offset).Subscribe(offset => Offset = offset);
+
+        _subscriptionsObject = Disposable.Create(() =>
+        {
+            sub1.Dispose();
+            sub2.Dispose();
+            sub3.Dispose();
+        });
     }
 
-    private void OnDisposed(object? sender, EventArgs e)
-    {
-        _subscriptions.ForEach(sub => sub.Dispose());
-        _subscriptions.Clear();
-    }
+    private void OnDisposed(object? sender, EventArgs e) => _subscriptionsObject.Dispose();
 }

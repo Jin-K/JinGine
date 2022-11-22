@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Reactive.Disposables;
 using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views.Models;
 using static System.Windows.Forms.TextFormatFlags;
@@ -14,11 +15,11 @@ public partial class EditorTextViewer : UserControl
     private readonly CharsGrid _grid;
     private readonly Helpers.Win32Caret _caret;
     private readonly Selector _selector;
-    private readonly List<IDisposable> _subscriptions;
     private EditorFileViewModel _viewModel;
     private Point? _mouseDownScreenPoint;
     private PaintZone _paintZone;
     private Point _caretPoint;
+    private IDisposable _subscriptionsObject;
 
     [Bindable(true)]
     internal TextSelectionRange TextSelection { get; set; }
@@ -36,10 +37,10 @@ public partial class EditorTextViewer : UserControl
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
         _caret = new Helpers.Win32Caret(this) { Size = cellSize };
         _selector = new Selector();
-        _subscriptions = new List<IDisposable>();
         _viewModel = EditorFileViewModel.Default;
         _caretPoint = Point.Empty;
-        
+        _subscriptionsObject = Disposable.Empty;
+
         TextSelection = TextSelectionRange.Empty;
         
         base.DoubleBuffered = true;
@@ -53,12 +54,20 @@ public partial class EditorTextViewer : UserControl
     internal void SetViewModel(EditorFileViewModel viewModel)
     {
         if (viewModel.TextLines.SequenceEqual(_viewModel.TextLines)) return;
+        
         _viewModel = viewModel;
 
-        _subscriptions.Add(viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(_ =>
-            _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1)));
-        _subscriptions.Add(viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(_ =>
-            _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1)));
+        _subscriptionsObject.Dispose();
+
+        var onNext = (int _) => { _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1); };
+        var sub1 = viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(onNext);
+        var sub2 = viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(onNext);
+        
+        _subscriptionsObject = Disposable.Create(() =>
+        {
+            sub1.Dispose();
+            sub2.Dispose();
+        });
 
         Invalidate();
     }
@@ -115,11 +124,7 @@ public partial class EditorTextViewer : UserControl
         Invalidate();
     }
 
-    private void OnDisposed(object? sender, EventArgs e)
-    {
-        _subscriptions.ForEach(sub => sub.Dispose());
-        _subscriptions.Clear();
-    }
+    private void OnDisposed(object? sender, EventArgs e) => _subscriptionsObject.Dispose();
 
     private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
     {

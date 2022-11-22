@@ -28,10 +28,8 @@ public abstract class BaseViewModel<T> : INotifyPropertyChanged
             .Select(_ => propertySelectorFunc((T)this));
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     protected bool SetField<TField>(ref TField field, TField value, [CallerMemberName] string? propertyName = null)
     {
