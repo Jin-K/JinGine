@@ -10,7 +10,8 @@ namespace JinGine.WinForms.Controls;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
-    private EditorFileViewModel _viewModel = EditorFileViewModel.Default;
+    private readonly List<IDisposable> _subscriptions;
+    private EditorFileViewModel _viewModel;
 
     private int Line { set => _lineLabel.Text = Convert.ToString(value); }
     private int Column { set => _columnLabel.Text = Convert.ToString(value); }
@@ -38,29 +39,28 @@ public partial class Editor : UserControl, IEditorView
     public Editor()
     {
         InitializeComponent();
+
+        _viewModel = EditorFileViewModel.Default;
+        _subscriptions = new List<IDisposable>();
+
         base.Dock = DockStyle.Fill;
+        Disposed += OnDisposed;
     }
     
     public void SetViewModel(EditorFileViewModel viewModel)
     {
         _viewModel = viewModel;
-        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        
+        _subscriptions.Add(_viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(column => Column = column));
+        _subscriptions.Add(_viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(line => Line = line));
+        _subscriptions.Add(_viewModel.ObserveChanges(vm => vm.Offset).Subscribe(offset => Offset = offset));
+        
         _editorTextViewer.SetViewModel(viewModel);
     }
 
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnDisposed(object? sender, EventArgs e)
     {
-        switch (e.PropertyName)
-        {
-            case nameof(_viewModel.ColumnNumber):
-                Column = _viewModel.ColumnNumber;
-                break;
-            case nameof(_viewModel.LineNumber):
-                Line = _viewModel.LineNumber;
-                break;
-            case nameof(_viewModel.Offset):
-                Offset = _viewModel.Offset;
-                break;
-        }
+        _subscriptions.ForEach(sub => sub.Dispose());
+        _subscriptions.Clear();
     }
 }

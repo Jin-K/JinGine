@@ -14,6 +14,7 @@ public partial class EditorTextViewer : UserControl
     private readonly CharsGrid _grid;
     private readonly Helpers.Win32Caret _caret;
     private readonly Selector _selector;
+    private readonly List<IDisposable> _subscriptions;
     private EditorFileViewModel _viewModel;
     private Point? _mouseDownScreenPoint;
     private PaintZone _paintZone;
@@ -35,12 +36,15 @@ public partial class EditorTextViewer : UserControl
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
         _caret = new Helpers.Win32Caret(this) { Size = cellSize };
         _selector = new Selector();
+        _subscriptions = new List<IDisposable>();
         _viewModel = EditorFileViewModel.Default;
         _caretPoint = Point.Empty;
+        
         TextSelection = TextSelectionRange.Empty;
         
         base.DoubleBuffered = true;
         base.Font = fontDescriptor.Font;
+        Disposed += OnDisposed;
         
         this.InitArrowKeyDownFiring();
         this.InitMouseWheelScrollDelegation(_vScrollBar);
@@ -50,7 +54,12 @@ public partial class EditorTextViewer : UserControl
     {
         if (viewModel.TextLines.SequenceEqual(_viewModel.TextLines)) return;
         _viewModel = viewModel;
-        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        _subscriptions.Add(viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(_ =>
+            _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1)));
+        _subscriptions.Add(viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(_ =>
+            _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1)));
+
         Invalidate();
     }
 
@@ -105,7 +114,13 @@ public partial class EditorTextViewer : UserControl
         _caret.Position = CoordsToClient(caretPoint.X, caretPoint.Y);
         Invalidate();
     }
-    
+
+    private void OnDisposed(object? sender, EventArgs e)
+    {
+        _subscriptions.ForEach(sub => sub.Dispose());
+        _subscriptions.Clear();
+    }
+
     private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
     {
         if (e.Type is ScrollEventType.EndScroll || e.OldValue.Equals(e.NewValue)) return;
@@ -291,17 +306,6 @@ public partial class EditorTextViewer : UserControl
             var textRect = Rectangle.Union(startCharRect, endCharRect);
             var text = textLine.AsSpan(_hScrollBar.Value, visibleCols);
             TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFormatFlags);
-        }
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case nameof(_viewModel.ColumnNumber):
-            case nameof(_viewModel.LineNumber):
-                _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1);
-                break;
         }
     }
 
