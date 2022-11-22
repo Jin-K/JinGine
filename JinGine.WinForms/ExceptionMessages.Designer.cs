@@ -61,6 +61,15 @@ namespace JinGine.WinForms {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Should be a property selector.
+        /// </summary>
+        internal static string BaseViewModel_OnPropertyChanged_Should_be_a_property_selector {
+            get {
+                return ResourceManager.GetString("BaseViewModel_OnPropertyChanged_Should_be_a_property_selector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Should be zero or positive..
         /// </summary>
         internal static string GridProjector_SetOffsets_Should_be_zero_or_positive_ {

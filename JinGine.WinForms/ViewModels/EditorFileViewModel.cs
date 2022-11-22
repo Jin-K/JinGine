@@ -1,6 +1,6 @@
 ﻿namespace JinGine.WinForms.ViewModels;
 
-public class EditorFileViewModel : BaseViewModel
+public class EditorFileViewModel : BaseViewModel<EditorFileViewModel>
 {
     internal static readonly EditorFileViewModel Default = new(new [] { ArraySegment<char>.Empty });
     private int _columnNumber;

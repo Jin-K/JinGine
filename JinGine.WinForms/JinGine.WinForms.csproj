@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\JinGine.App\JinGine.App.csproj" />
     <ProjectReference Include="..\JinGine.Infra\JinGine.Infra.csproj" />
   </ItemGroup>
