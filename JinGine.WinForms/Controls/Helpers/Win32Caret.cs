@@ -10,9 +10,10 @@ internal partial class Win32Caret
     internal Point Position { get; set; }
     internal Size Size { get; set; }
 
-    internal Win32Caret(UserControl userControl)
+    internal Win32Caret(UserControl userControl, Size size)
     {
         _userControl = userControl;
+        Size = size;
 
         userControl.GotFocus += OnGotFocus;
         userControl.LostFocus += OnLostFocus;
@@ -62,7 +63,7 @@ internal partial class Win32Caret
 
     [LibraryImport("user32", EntryPoint = nameof(CreateCaret), SetLastError = true)]
     private static partial int CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
-
+    
     [LibraryImport("user32", EntryPoint = nameof(DestroyCaret), SetLastError = true)]
     private static partial int DestroyCaret();
 

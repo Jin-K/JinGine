@@ -35,7 +35,7 @@ public partial class EditorTextViewer : UserControl
         var cellSize = new Size(fontDescriptor.Width, fontDescriptor.Height);
         
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
-        _caret = new Helpers.Win32Caret(this) { Size = cellSize };
+        _caret = new Helpers.Win32Caret(this, cellSize);
         _selector = new Selector();
         _viewModel = EditorFileViewModel.Default;
         _caretPoint = Point.Empty;
