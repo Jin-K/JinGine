@@ -3,16 +3,17 @@ using System.Runtime.InteropServices;
 
 namespace JinGine.WinForms.Controls.Helpers;
 
-internal class Win32Caret
+internal partial class Win32Caret
 {
     private readonly UserControl _userControl;
 
     internal Point Position { get; set; }
     internal Size Size { get; set; }
 
-    internal Win32Caret(UserControl userControl)
+    internal Win32Caret(UserControl userControl, Size size)
     {
         _userControl = userControl;
+        Size = size;
 
         userControl.GotFocus += OnGotFocus;
         userControl.LostFocus += OnLostFocus;
@@ -60,15 +61,15 @@ internal class Win32Caret
 
     private static bool Succeeded(int returnValue) => returnValue is not 0;
 
-    [DllImport("user32", SetLastError = true)]
-    private static extern int CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
+    [LibraryImport("user32", EntryPoint = nameof(CreateCaret), SetLastError = true)]
+    private static partial int CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
+    
+    [LibraryImport("user32", EntryPoint = nameof(DestroyCaret), SetLastError = true)]
+    private static partial int DestroyCaret();
 
-    [DllImport("user32", SetLastError = true)]
-    private static extern int DestroyCaret();
+    [LibraryImport("user32", EntryPoint = nameof(SetCaretPos), SetLastError = true)]
+    private static partial int SetCaretPos(int x, int y);
 
-    [DllImport("user32", SetLastError = true)]
-    private static extern int SetCaretPos(int x, int y);
-
-    [DllImport("user32", SetLastError = true)]
-    private static extern int ShowCaret(IntPtr hWnd);
+    [LibraryImport("user32", EntryPoint = nameof(ShowCaret), SetLastError = true)]
+    private static partial int ShowCaret(IntPtr hWnd);
 }

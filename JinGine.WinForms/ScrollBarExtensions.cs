@@ -2,7 +2,7 @@
 
 namespace JinGine.WinForms;
 
-internal static class ScrollBarExtensions
+internal static partial class ScrollBarExtensions
 {
     internal static void InvokeMouseWheel(this ScrollBar scrollBar, int delta)
     {
@@ -13,6 +13,6 @@ internal static class ScrollBarExtensions
         SendMessage(scrollBar.Handle, wmMousewheel, wParam, lParam);
     }
 
-    [DllImport("user32", SetLastError = true)]
-    private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+    [LibraryImport("user32", EntryPoint = "SendMessageA", SetLastError = true)]
+    private static partial IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 }
