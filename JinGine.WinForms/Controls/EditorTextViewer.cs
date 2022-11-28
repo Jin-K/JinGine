@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Reactive.Disposables;
 using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views.Models;
 using static System.Windows.Forms.TextFormatFlags;
@@ -15,11 +14,11 @@ public partial class EditorTextViewer : UserControl
     private readonly CharsGrid _grid;
     private readonly Helpers.Win32Caret _caret;
     private readonly Selector _selector;
+    private readonly List<IDisposable> _vmSubs;
     private EditorFileViewModel _viewModel;
-    private Point? _mouseDownScreenPoint;
+    private bool _mouseIsDown;
     private PaintZone _paintZone;
     private Point _caretPoint;
-    private IDisposable _subscriptionsObject;
 
     [Bindable(true)]
     internal TextSelectionRange TextSelection { get; set; }
@@ -37,15 +36,15 @@ public partial class EditorTextViewer : UserControl
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
         _caret = new Helpers.Win32Caret(this, cellSize);
         _selector = new Selector();
+        _vmSubs = new List<IDisposable>();
         _viewModel = EditorFileViewModel.Default;
         _caretPoint = Point.Empty;
-        _subscriptionsObject = Disposable.Empty;
 
         TextSelection = TextSelectionRange.Empty;
         
         base.DoubleBuffered = true;
         base.Font = fontDescriptor.Font;
-        Disposed += OnDisposed;
+        Disposed += ClearViewModelSubscriptions;
         
         this.InitArrowKeyDownFiring();
         this.InitMouseWheelScrollDelegation(_vScrollBar);
@@ -56,21 +55,25 @@ public partial class EditorTextViewer : UserControl
         if (viewModel.TextLines.SequenceEqual(_viewModel.TextLines)) return;
         
         _viewModel = viewModel;
-
-        _subscriptionsObject.Dispose();
-
-        var sub1 = viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(OnNext);
-        var sub2 = viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(OnNext);
         
-        _subscriptionsObject = Disposable.Create(() =>
-        {
-            sub1.Dispose();
-            sub2.Dispose();
-        });
+        ClearViewModelSubscriptions();
+        
+        _vmSubs.Add(viewModel
+            .ObserveChanges(vm => vm.ColumnNumber)
+            .Subscribe(OnNext));
+        _vmSubs.Add(viewModel
+            .ObserveChanges(vm => vm.LineNumber)
+            .Subscribe(OnNext));
 
         Invalidate();
 
         void OnNext(int _) => _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1);
+    }
+
+    private void ClearViewModelSubscriptions(object? sender = null, EventArgs? args = null)
+    {
+        _vmSubs.ForEach(sub => sub.Dispose());
+        _vmSubs.Clear();
     }
 
     private Point ClientToCoords(Point point)
@@ -117,15 +120,28 @@ public partial class EditorTextViewer : UserControl
             _vScrollBar.InvokeMouseWheel((_vScrollBar.Value - desiredVScroll) * SystemInformation.MouseWheelScrollDelta);
     }
 
+    private Point? TryFindClosestCharCoords(Point coords) // TODO move to view-model ?
+    {
+        var maxY = _viewModel.TextLines.Count - 1;
+        var y = Math.Max(0, Math.Min(maxY, coords.Y));
+        var line = _viewModel.TextLines[y];
+        var maxX = y != maxY ? line.Count : line.Count - 1;
+        if (coords.X > maxX) return null;
+        var x = Math.Max(0, Math.Min(maxX, coords.X));
+        return new Point(x, y);
+    }
+
     private void OnCaretPointChanged(Point caretPoint)
     {
         _caretPoint = caretPoint;
         CaretPointChanged?.Invoke(this, caretPoint);
         _caret.Position = CoordsToClient(caretPoint.X, caretPoint.Y);
+        //if (_selector.State == SelectionState.Selecting)
+        //{
+
+        //}
         Invalidate();
     }
-
-    private void OnDisposed(object? sender, EventArgs e) => _subscriptionsObject.Dispose();
 
     private void OnHScrollBarScroll(object? sender, ScrollEventArgs e)
     {
@@ -236,35 +252,55 @@ public partial class EditorTextViewer : UserControl
 
     private void OnMouseDown(object sender, MouseEventArgs e)
     {
-        _mouseDownScreenPoint = e.Location;
-        _selector.Clear();
+        _mouseIsDown = true;
+        
+        switch (_selector.State)
+        {
+            case SelectionState.Selected:
+                _selector.Clear();
+                break;
+            case SelectionState.Unselected when (ModifierKeys & Keys.Shift) is not 0:
+                _selector.StartSelect(_caretPoint);
+                break;
+        }
+
         Invalidate();
     }
 
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        if (_mouseDownScreenPoint is null) return;
+        if (_mouseIsDown is false) return;
 
         switch (_selector.State)
         {
             case SelectionState.Unselected:
             {
-                var startPoint = ClientToCoords(_mouseDownScreenPoint.Value);
-                _selector.StartSelect(startPoint);
-                Invalidate();
+                var coordsPoint = ClientToCoords(e.Location);
+                var startPoint = TryFindClosestCharCoords(coordsPoint);
+                if (startPoint.HasValue)
+                {
+                    _selector.StartSelect(startPoint.Value);
+                    Invalidate();
+                }
                 break;
             }
             case SelectionState.Selecting:
-                var endPoint = ClientToCoords(e.Location);
-                _selector.Select(endPoint);
-                Invalidate();
+            {
+                var coordsPoint = ClientToCoords(e.Location);
+                var endPoint = TryFindClosestCharCoords(coordsPoint);
+                if (endPoint.HasValue)
+                {
+                    _selector.Select(endPoint.Value);
+                    Invalidate();
+                }
                 break;
+            }
         }
     }
 
     private void OnMouseUp(object sender, MouseEventArgs e)
     {
-        _mouseDownScreenPoint = null;
+        _mouseIsDown = false;
         if (_selector.State is not SelectionState.Selecting) return;
         _selector.EndSelect();
         Invalidate();
@@ -346,15 +382,10 @@ public partial class EditorTextViewer : UserControl
             State = SelectionState.Unselected;
         }
 
-        internal void EndSelect()
-        {
-            State = SelectionState.Selected;
-        }
+        internal void EndSelect() => State = SelectionState.Selected;
 
-        internal bool IsLineSelected(int index)
-        {
-            return State is not SelectionState.Unselected && Start.Y <= index && index <= End.Y;
-        }
+        internal bool IsLineSelected(int index) =>
+            State is not SelectionState.Unselected && Start.Y <= index && index <= End.Y;
 
         internal void Select(Point point)
         {
