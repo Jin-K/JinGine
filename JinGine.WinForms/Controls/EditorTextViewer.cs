@@ -59,9 +59,8 @@ public partial class EditorTextViewer : UserControl
 
         _subscriptionsObject.Dispose();
 
-        var onNext = (int _) => { _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1); };
-        var sub1 = viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(onNext);
-        var sub2 = viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(onNext);
+        var sub1 = viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(OnNext);
+        var sub2 = viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(OnNext);
         
         _subscriptionsObject = Disposable.Create(() =>
         {
@@ -70,6 +69,8 @@ public partial class EditorTextViewer : UserControl
         });
 
         Invalidate();
+
+        void OnNext(int _) => _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1);
     }
 
     private Point ClientToCoords(Point point)
