@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using static JinGine.App.Benchmarks.TextSample;
-// ReSharper disable UnusedMethodReturnValue.Local
 
 namespace JinGine.App.Benchmarks;
 
@@ -27,22 +26,20 @@ public class FileContentConvertToPrintableTextBenchmarks
     public void CopyCharArrayToPrintableCharArrayFromArrayPool() =>
         CopyCharArrayToPrintableCharArrayFromArrayPool(TextChars);
     
-    private static string CopyStringToPrintableString(string text) =>
+    private static void CopyStringToPrintableString(string text) =>
         string.Create(text.Length, text, (span, s) => CopyOrReplaceChars(s, span));
     
-    private static char[] CopyCharArrayToPrintableCharArray(char[] textChars)
+    private static void CopyCharArrayToPrintableCharArray(char[] textChars)
     {
         var printableChars = new char[textChars.Length];
         CopyOrReplaceChars(textChars, printableChars);
-        return printableChars;
     }
     
-    private static char[] CopyCharArrayToPrintableCharArrayFromArrayPool(char[] textChars)
+    private static void CopyCharArrayToPrintableCharArrayFromArrayPool(char[] textChars)
     {
         var printableChars = ArrayPool<char>.Shared.Rent(textChars.Length);
         CopyOrReplaceChars(textChars, printableChars);
         //ArrayPool<char>.Shared.Return(printableChars);
-        return printableChars;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

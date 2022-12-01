@@ -14,5 +14,5 @@ internal static partial class ScrollBarExtensions
     }
 
     [LibraryImport("user32", EntryPoint = "SendMessageA", SetLastError = true)]
-    private static partial IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+    private static partial void SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 }
