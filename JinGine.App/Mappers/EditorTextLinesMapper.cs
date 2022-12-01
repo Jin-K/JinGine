@@ -2,36 +2,37 @@
 
 public static class EditorTextLinesMapper
 {
-    public static ArraySegment<char>[] Map(ArraySegment<char> charsSegment)
+    public static ArraySegment<char>[] Map(ArraySegment<char> text)
     {
-        var length = charsSegment.Count;
-        ReadOnlySpan<char> charsSpan = charsSegment;
+        var length = text.Count;
+        var textSpan = new ReadOnlySpan<char>(text.Array, text.Offset, text.Count);
         var res = new List<ArraySegment<char>>();
+        var pos = 0;
 
-        for (var pos = 0; pos <= length;)
+        while (pos < length)
         {
-            var indexOfLineTerminator = charsSpan.IndexOfAny('\r', '\n');
-            if (indexOfLineTerminator is not -1)
+            var indexOfNewLineChar = textSpan.IndexOfAny('\r', '\n');
+            
+            if ((uint)indexOfNewLineChar >= (uint)length) break;
+            
+            var deltaPos = indexOfNewLineChar + 1;
+
+            if (textSpan[indexOfNewLineChar] is '\r')
             {
-                var segmentLength = indexOfLineTerminator;
-
-                if (charsSpan[indexOfLineTerminator] is '\r' &&
-                    indexOfLineTerminator + 1 < length &&
-                    charsSpan[indexOfLineTerminator + 1] is '\n')
-                    indexOfLineTerminator++;
-
-                res.Add(charsSegment.Slice(pos, segmentLength));
-
-                var deltaPos = indexOfLineTerminator + 1;
-                pos += deltaPos;
-                charsSpan = charsSpan[deltaPos..];
+                var nextCharPos = indexOfNewLineChar + 1;
+                if ((uint)nextCharPos < (uint)length && textSpan[nextCharPos] is '\n')
+                {
+                    deltaPos++;
+                }
             }
-            else
-            {
-                res.Add(charsSegment.Slice(pos, length - pos));
-                break;
-            }
+
+            res.Add(text.Slice(pos, indexOfNewLineChar));
+
+            pos += deltaPos;
+            textSpan = textSpan[deltaPos..];
         }
+
+        res.Add(text.Slice(pos, length - pos));
 
         return res.ToArray();
     }

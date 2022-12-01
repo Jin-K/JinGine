@@ -10,7 +10,7 @@ namespace JinGine.WinForms
         
         public MainForm() => InitializeComponent();
 
-        public void SetMenuItems(ToolStripItem[] items) => MainMenuStrip.Items.AddRange(items);
+        public void SetMenuItems(ToolStripItem[] items) => _menuStrip.Items.AddRange(items);
 
         public void ShowInNewTab(string name, Control control)
         {

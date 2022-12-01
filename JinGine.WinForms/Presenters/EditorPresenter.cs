@@ -9,7 +9,6 @@ namespace JinGine.WinForms.Presenters;
 
 internal class EditorPresenter : IDisposable
 {
-    private readonly IEditorView _view;
     private readonly EditorFileViewModel _viewModel;
     private int _charsLength;
     private int _pos;
@@ -22,8 +21,7 @@ internal class EditorPresenter : IDisposable
         editorFile.Content.CopyTo(textChars.AsSpan());
         var charsSegment = new ArraySegment<char>(textChars, 0, length);
         var textLines = EditorTextLinesMapper.Map(charsSegment);
-
-        _view = view;
+        
         _viewModel = new EditorFileViewModel(textLines);
         _charsLength = length;
         _pos = editorFile.Content.Length;
@@ -32,7 +30,7 @@ internal class EditorPresenter : IDisposable
         view.KeyPressed += OnKeyPressed;
         view.CaretPointChanged += OnCaretPointChanged;
 
-        _view.SetViewModel(_viewModel);
+        view.SetViewModel(_viewModel);
         _viewModel.UpdateCaretPositions(_pos);
         ReplaceUnprintableChars(textChars.AsSpan(0, length));
     }
