@@ -134,6 +134,13 @@ public partial class EditorTextViewer : UserControl
             _vScrollBar.InvokeMouseWheel((_vScrollBar.Value - desiredVScroll) * SystemInformation.MouseWheelScrollDelta);
     }
 
+    private Point GetLastCaretPoint()
+    {
+        var lastLineY = _viewModel.TextLines.Count - 1;
+        var lastLineLastX = _viewModel.TextLines[lastLineY].Count;
+        return new Point(lastLineLastX, lastLineY);
+    }
+
     private void OnCaretPointChanged(Point caretPoint)
     {
         if (caretPoint == _caretPoint) return;
@@ -141,6 +148,7 @@ public partial class EditorTextViewer : UserControl
         _caretPoint = caretPoint;
         CaretPointChanged?.Invoke(this, caretPoint);
         _caret.Position = CoordsToClient(caretPoint.X, caretPoint.Y);
+        EnsureVisibleCaret();
         Invalidate();
     }
 
@@ -158,7 +166,7 @@ public partial class EditorTextViewer : UserControl
         Invalidate();
     }
     
-    // TODO still need to handle Home, End, Delete, PageUp, PageDown, Ctrl + A, Ctrl + C, Ctrl + X, Ctrl + V, Ctrl + Z, Ctrl + Y, etc.
+    // TODO still need to handle Delete, PageUp, PageDown, Ctrl + C, Ctrl + X, Ctrl + V, Ctrl + Z, Ctrl + Y, etc.
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyCode is Keys.ShiftKey && _selector.State is SelectionState.Selected)
@@ -166,6 +174,34 @@ public partial class EditorTextViewer : UserControl
             _selector.Reselect();
             Invalidate();
             return;
+        }
+
+        var ctrlModifier = (e.Modifiers & Keys.Control) is Keys.Control;
+        var shiftModifier = (e.Modifiers & Keys.Shift) is Keys.Shift;
+
+        switch (e.KeyCode)
+        {
+            case Keys.A when ctrlModifier:
+                SelectAll();
+                e.SuppressKeyPress = true;
+                return;
+            case Keys.Home:
+                OnCaretPointChanged(Point.Empty);
+                if (shiftModifier && _selector.State is SelectionState.Selecting)
+                {
+                    _selector.Select(_caretPoint);
+                    Invalidate();
+                }
+                return;
+            case Keys.End:
+                var lastCaretPoint = GetLastCaretPoint();
+                OnCaretPointChanged(lastCaretPoint);
+                if (shiftModifier && _selector.State is SelectionState.Selecting)
+                {
+                    _selector.Select(_caretPoint);
+                    Invalidate();
+                }
+                return;
         }
 
         // TODO notify direction intent via event to presenter ?
@@ -369,6 +405,16 @@ public partial class EditorTextViewer : UserControl
             var text = textLine.AsSpan(_hScrollBar.Value, visibleCols);
             TextRenderer.DrawText(e.Graphics, text, Font, textRect, Color.Black, TextFormatFlags);
         }
+    }
+
+    private void SelectAll()
+    {
+        _selector.StartSelect(Point.Empty);
+        var lastCaretPoint = GetLastCaretPoint();
+        OnCaretPointChanged(lastCaretPoint);
+        _selector.Select(_caretPoint);
+        _selector.EndSelect();
+        Invalidate();
     }
 
     #region Private Types
