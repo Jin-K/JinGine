@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using JinGine.WinForms.ViewModels;
 using JinGine.WinForms.Views;
 using JinGine.WinForms.Views.Models;
@@ -11,12 +11,8 @@ namespace JinGine.WinForms.Controls;
 /// </summary>
 public partial class Editor : UserControl, IEditorView
 {
+    private readonly List<IDisposable> _subscriptions;
     private EditorFileViewModel _viewModel;
-    private IDisposable _subscriptionsObject;
-
-    private int Line { set => _lineLabel.Text = Convert.ToString(value); }
-    private int Column { set => _columnLabel.Text = Convert.ToString(value); }
-    private int Offset { set => _offsetLabel.Text = Convert.ToString(value); }
 
     [Bindable(true)]
     public TextSelectionRange TextSelection
@@ -41,31 +37,35 @@ public partial class Editor : UserControl, IEditorView
     {
         InitializeComponent();
 
+        _subscriptions = new List<IDisposable>();
         _viewModel = EditorFileViewModel.Default;
-        _subscriptionsObject = Disposable.Empty;
 
         base.Dock = DockStyle.Fill;
-        Disposed += OnDisposed;
+        Disposed += ClearSubscriptions;
     }
     
     public void SetViewModel(EditorFileViewModel viewModel)
     {
         _viewModel = viewModel;
         _editorTextViewer.SetViewModel(viewModel);
+        
+        ClearSubscriptions();
 
-        _subscriptionsObject.Dispose();
-
-        var sub1 = _viewModel.ObserveChanges(vm => vm.ColumnNumber).Subscribe(column => Column = column);
-        var sub2 = _viewModel.ObserveChanges(vm => vm.LineNumber).Subscribe(line => Line = line);
-        var sub3 = _viewModel.ObserveChanges(vm => vm.Offset).Subscribe(offset => Offset = offset);
-
-        _subscriptionsObject = Disposable.Create(() =>
-        {
-            sub1.Dispose();
-            sub2.Dispose();
-            sub3.Dispose();
-        });
+        _subscriptions.Add(_viewModel
+            .ObserveChanges(vm => vm.ColumnNumber)
+            .Subscribe(column => _colTextBox.Text = column.ToString()));
+        _subscriptions.Add(_viewModel
+            .ObserveChanges(vm => vm.LineNumber)
+            .Subscribe(line => _lineTextBox.Text = line.ToString()));
+        _subscriptions.Add(_viewModel
+            .ObserveChanges(vm => vm.Offset)
+            .Select(offset => offset + 1)
+            .Subscribe(position => _posTextBox.Text = position.ToString()));
     }
 
-    private void OnDisposed(object? sender, EventArgs e) => _subscriptionsObject.Dispose();
+    private void ClearSubscriptions(object? sender = null, EventArgs? args = null)
+    {
+        _subscriptions.ForEach(sub => sub.Dispose());
+        _subscriptions.Clear();
+    }
 }

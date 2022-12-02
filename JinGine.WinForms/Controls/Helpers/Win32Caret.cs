@@ -6,14 +6,14 @@ namespace JinGine.WinForms.Controls.Helpers;
 internal partial class Win32Caret
 {
     private readonly UserControl _userControl;
+    private readonly Size _size;
 
     internal Point Position { get; set; }
-    internal Size Size { get; set; }
 
     internal Win32Caret(UserControl userControl, Size size)
     {
         _userControl = userControl;
-        Size = size;
+        _size = size;
 
         userControl.GotFocus += OnGotFocus;
         userControl.LostFocus += OnLostFocus;
@@ -21,7 +21,7 @@ internal partial class Win32Caret
 
     private void CreateCaret()
     {
-        if (!Succeeded(CreateCaret(_userControl.Handle, IntPtr.Zero, Size.Width, Size.Height)))
+        if (!Succeeded(CreateCaret(_userControl.Handle, IntPtr.Zero, _size.Width, _size.Height)))
             throw new Win32Exception(nameof(CreateCaret));
 
         _userControl.Paint += OnPaint;
