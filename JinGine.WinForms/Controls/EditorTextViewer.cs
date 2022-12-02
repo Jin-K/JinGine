@@ -81,13 +81,13 @@ public partial class EditorTextViewer : UserControl
     {
         var coords = ClientToCoords(clientPoint);
 
-        var maxY = _viewModel.TextLines.Count - 1;
-        coords.CropY(0, maxY);
+        var y = coords.Y.Crop(0, _viewModel.TextLines.Count - 1);
 
-        var maxX = _viewModel.TextLines[coords.Y].Count;
-        coords.CropX(0, maxX);
-
-        return coords;
+        return new Point
+        {
+            X = coords.X.Crop(0, _viewModel.TextLines[y].Count),
+            Y = y,
+        };
     }
 
     private Point ClientToCoords(Point point)
@@ -254,7 +254,6 @@ public partial class EditorTextViewer : UserControl
             switch (_selector.State)
             {
                 case SelectionState.Unselected:
-                    
                     _selector.StartSelect(_caretPoint);
                     _selector.Select(newCaretPoint);
                     break;
@@ -396,7 +395,7 @@ public partial class EditorTextViewer : UserControl
                 }
             }
 
-            var visibleCols = Math.Min(_paintZone.VisibleColumnsCount, Math.Max(0, textLineLength - _hScrollBar.Value));
+            var visibleCols = (textLineLength - _hScrollBar.Value).Crop(0, _paintZone.VisibleColumnsCount);
             if (visibleCols is 0) continue;
             
             var startCharRect = CoordsToClientRect(_hScrollBar.Value, y);
