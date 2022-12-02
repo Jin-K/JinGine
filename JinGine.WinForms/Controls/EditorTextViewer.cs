@@ -34,10 +34,11 @@ public partial class EditorTextViewer : UserControl
         var cellSize = new Size(fontDescriptor.Width, fontDescriptor.Height);
         
         _grid = new CharsGrid(cellSize.Width, cellSize.Height, fontDescriptor.LeftMargin);
-        _caret = new Helpers.Win32Caret(this, cellSize);
+        _caret = new Helpers.Win32Caret(this, cellSize with { Width = 2 });
         _selector = new Selector();
         _vmSubs = new List<IDisposable>();
         _viewModel = EditorFileViewModel.Default;
+        _mouseIsDown = false;
         _caretPoint = Point.Empty;
 
         TextSelection = TextSelectionRange.Empty;
@@ -55,25 +56,38 @@ public partial class EditorTextViewer : UserControl
         if (viewModel.TextLines.SequenceEqual(_viewModel.TextLines)) return;
         
         _viewModel = viewModel;
-        
+
         ClearViewModelSubscriptions();
         
         _vmSubs.Add(viewModel
             .ObserveChanges(vm => vm.ColumnNumber)
-            .Subscribe(OnNext));
+            .Subscribe(_ =>
+                _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1)));
         _vmSubs.Add(viewModel
             .ObserveChanges(vm => vm.LineNumber)
-            .Subscribe(OnNext));
+            .Subscribe(_ =>
+                _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1)));
 
         Invalidate();
-
-        void OnNext(int _) => _caretPoint = new Point(_viewModel.ColumnNumber - 1, _viewModel.LineNumber - 1);
     }
 
     private void ClearViewModelSubscriptions(object? sender = null, EventArgs? args = null)
     {
         _vmSubs.ForEach(sub => sub.Dispose());
         _vmSubs.Clear();
+    }
+
+    private Point ClientToClosestCoords(Point clientPoint)
+    {
+        var coords = ClientToCoords(clientPoint);
+
+        var maxY = _viewModel.TextLines.Count - 1;
+        coords.CropY(0, maxY);
+
+        var maxX = _viewModel.TextLines[coords.Y].Count;
+        coords.CropX(0, maxX);
+
+        return coords;
     }
 
     private Point ClientToCoords(Point point)
@@ -120,26 +134,13 @@ public partial class EditorTextViewer : UserControl
             _vScrollBar.InvokeMouseWheel((_vScrollBar.Value - desiredVScroll) * SystemInformation.MouseWheelScrollDelta);
     }
 
-    private Point? TryFindClosestCharCoords(Point coords) // TODO move to view-model ?
-    {
-        var maxY = _viewModel.TextLines.Count - 1;
-        var y = Math.Max(0, Math.Min(maxY, coords.Y));
-        var line = _viewModel.TextLines[y];
-        var maxX = y != maxY ? line.Count : line.Count - 1;
-        if (coords.X > maxX) return null;
-        var x = Math.Max(0, Math.Min(maxX, coords.X));
-        return new Point(x, y);
-    }
-
     private void OnCaretPointChanged(Point caretPoint)
     {
+        if (caretPoint == _caretPoint) return;
+
         _caretPoint = caretPoint;
         CaretPointChanged?.Invoke(this, caretPoint);
         _caret.Position = CoordsToClient(caretPoint.X, caretPoint.Y);
-        //if (_selector.State == SelectionState.Selecting)
-        //{
-
-        //}
         Invalidate();
     }
 
@@ -162,16 +163,21 @@ public partial class EditorTextViewer : UserControl
     {
         if (e.KeyCode is Keys.ShiftKey && _selector.State is SelectionState.Selected)
         {
-            _selector.Select(_caretPoint);
+            _selector.Reselect();
             Invalidate();
+            return;
         }
 
         // TODO notify direction intent via event to presenter ?
         var newCaretPoint = _caretPoint;
+
         switch (e.KeyCode)
         {
             case Keys.Left:
-                if (newCaretPoint.X > 0) newCaretPoint.X--;
+                if (newCaretPoint.X > 0)
+                {
+                    newCaretPoint.X--;
+                }
                 else if (newCaretPoint.Y > 0)
                 {
                     newCaretPoint.Y--;
@@ -179,7 +185,10 @@ public partial class EditorTextViewer : UserControl
                 }
                 break;
             case Keys.Right:
-                if (newCaretPoint.X < _viewModel.TextLines[newCaretPoint.Y].Count) newCaretPoint.X++;
+                if (newCaretPoint.X < _viewModel.TextLines[newCaretPoint.Y].Count)
+                {
+                    newCaretPoint.X++;
+                }
                 else if (newCaretPoint.Y + 1 < _viewModel.TextLines.Count)
                 {
                     newCaretPoint.Y++;
@@ -209,10 +218,11 @@ public partial class EditorTextViewer : UserControl
             switch (_selector.State)
             {
                 case SelectionState.Unselected:
-                    _selector.StartSelect(newCaretPoint);
+                    
+                    _selector.StartSelect(_caretPoint);
+                    _selector.Select(newCaretPoint);
                     break;
                 case SelectionState.Selecting:
-                case SelectionState.Selected:
                     _selector.Select(newCaretPoint);
                     break;
                 default:
@@ -253,14 +263,21 @@ public partial class EditorTextViewer : UserControl
     private void OnMouseDown(object sender, MouseEventArgs e)
     {
         _mouseIsDown = true;
+
+        var oldCaretPoint = _caretPoint;
+        var caretPoint = ClientToClosestCoords(e.Location);
+        OnCaretPointChanged(caretPoint);
         
         switch (_selector.State)
         {
             case SelectionState.Selected:
                 _selector.Clear();
                 break;
+            case SelectionState.Selecting:
+                _selector.Select(caretPoint);
+                break;
             case SelectionState.Unselected when (ModifierKeys & Keys.Shift) is not 0:
-                _selector.StartSelect(_caretPoint);
+                _selector.StartSelect(oldCaretPoint);
                 break;
         }
 
@@ -271,29 +288,23 @@ public partial class EditorTextViewer : UserControl
     {
         if (_mouseIsDown is false) return;
 
+        var caretPoint = ClientToClosestCoords(e.Location);
+        OnCaretPointChanged(caretPoint);
+
         switch (_selector.State)
         {
             case SelectionState.Unselected:
             {
-                var coordsPoint = ClientToCoords(e.Location);
-                var startPoint = TryFindClosestCharCoords(coordsPoint);
-                if (startPoint.HasValue)
-                {
-                    _selector.StartSelect(startPoint.Value);
-                    Invalidate();
-                }
-                break;
+                _selector.StartSelect(_caretPoint);
+                Invalidate();
+                return;
             }
             case SelectionState.Selecting:
             {
-                var coordsPoint = ClientToCoords(e.Location);
-                var endPoint = TryFindClosestCharCoords(coordsPoint);
-                if (endPoint.HasValue)
-                {
-                    _selector.Select(endPoint.Value);
-                    Invalidate();
-                }
-                break;
+                var endPoint = ClientToClosestCoords(e.Location);
+                _selector.Select(endPoint);
+                Invalidate();
+                return;
             }
         }
     }
@@ -301,8 +312,17 @@ public partial class EditorTextViewer : UserControl
     private void OnMouseUp(object sender, MouseEventArgs e)
     {
         _mouseIsDown = false;
-        if (_selector.State is not SelectionState.Selecting) return;
-        _selector.EndSelect();
+
+        if (_selector.State is not SelectionState.Selecting)
+        {
+            return;
+        }
+
+        if ((ModifierKeys & Keys.Shift) is not Keys.Shift)
+        {
+            _selector.EndSelect();
+        }
+
         Invalidate();
     }
 
@@ -324,14 +344,14 @@ public partial class EditorTextViewer : UserControl
 
             if (_selector.IsLineSelected(y))
             {
-                var selectionStartX = y == _selector.Start.Y ? _selector.Start.X : 0;
-                var selectionEndX = y == _selector.End.Y
-                    ? _selector.End.X
-                    : y == textLinesCount - 1 ? textLineLength - 1 : textLineLength;
-                var selectionRect = Rectangle.Union(
-                    CoordsToClientRect(selectionStartX, y),
-                    CoordsToClientRect(selectionEndX, y));
+                var x1 = y == _selector.Start.Y ? _selector.Start.X : 0;
+                var x2 = y == _selector.End.Y ? _selector.End.X : textLineLength + 1;
+                var start = CoordsToClient(x1, y);
+                var end = CoordsToClient(x2, y + 1);
+                var size = new Size(end.X - start.X, end.Y - start.Y);
+                var selectionRect = new Rectangle(start, size);
                 
+                // if is in client rectangle
                 if (selectionRect.Right > 0)
                 {
                     if (selectionRect.X < 0) selectionRect.InflateStart(selectionRect.X, 0);
@@ -386,6 +406,8 @@ public partial class EditorTextViewer : UserControl
 
         internal bool IsLineSelected(int index) =>
             State is not SelectionState.Unselected && Start.Y <= index && index <= End.Y;
+
+        internal void Reselect() => State = SelectionState.Selecting;
 
         internal void Select(Point point)
         {

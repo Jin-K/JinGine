@@ -8,7 +8,7 @@ internal partial class Win32Caret
     private readonly UserControl _userControl;
 
     internal Point Position { get; set; }
-    internal Size Size { get; set; }
+    private Size Size { get; }
 
     internal Win32Caret(UserControl userControl, Size size)
     {
